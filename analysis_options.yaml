@@ -1,0 +1,97 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-casts: false
+    strict-inference: true
+    strict-raw-types: true
+
+  errors:
+    missing_required_param: error
+    missing_return: error
+    record_literal_one_positional_no_trailing_comma: error
+    unused_import: error
+    unused_local_variable: error
+    unused_element: error
+    unused_element_parameter: error
+    unnecessary_import: error
+    unnecessary_this: error
+    unnecessary_new: error
+    unnecessary_const: error
+    avoid_unnecessary_containers: error
+    duplicate_import: error
+    prefer_const_constructors: error
+    prefer_const_constructors_in_immutables: error
+    prefer_const_declarations: error
+    prefer_const_literals_to_create_immutables: error
+    prefer_final_fields: error
+    prefer_final_locals: error
+    prefer_if_null_operators: error
+    prefer_is_not_empty: error
+    prefer_single_quotes: error
+    always_use_package_imports: error
+    avoid_empty_else: error
+    avoid_relative_lib_imports: error
+    dead_null_aware_expression: error
+    require_trailing_commas: error
+    always_put_required_named_parameters_first: error
+    avoid_multiple_declarations_per_line: error
+    avoid_redundant_argument_values: error
+    empty_constructor_bodies: error
+    annotate_overrides: error
+    close_sinks: error
+    inference_failure_on_function_invocation: error
+    omit_local_variable_types: error
+    file_names: error
+    camel_case_extensions: error
+    undefined_operator: error
+    return_of_invalid_type_from_closure: error
+    list_element_type_not_assignable: error
+    undefined_method: error
+    undefined_getter: error
+    inference_failure_on_instance_creation: error
+    argument_type_not_assignable: error
+    collection_methods_unrelated_type: error
+    inference_failure_on_untyped_parameter: error
+    unrelated_type_equality_checks: error
+    always_declare_return_types: error
+    inference_failure_on_collection_literal: error
+    no_default_cases: error
+
+    #TEMP IGNORE
+    constant_identifier_names: ignore
+
+linter:
+  rules:
+    - no_default_cases
+    - unnecessary_this
+    - unnecessary_new
+    - unnecessary_const
+    - avoid_unnecessary_containers
+    - prefer_const_constructors
+    - prefer_const_constructors_in_immutables
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
+    - prefer_final_fields
+    - prefer_final_locals
+    - prefer_if_null_operators
+    - prefer_is_not_empty
+    - prefer_single_quotes
+    - always_use_package_imports
+    - avoid_empty_else
+    - avoid_relative_lib_imports
+    - collection_methods_unrelated_type
+    - unrelated_type_equality_checks
+    - require_trailing_commas
+    - always_put_required_named_parameters_first
+    - avoid_multiple_declarations_per_line
+    - avoid_redundant_argument_values
+    - empty_constructor_bodies
+    - annotate_overrides
+    - close_sinks
+    - omit_local_variable_types
+    - file_names
+    - constant_identifier_names
+    - always_declare_return_types
+    - camel_case_extensions
+    - deprecated_member_use_from_same_package
