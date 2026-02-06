@@ -1,0 +1,73 @@
+import Flutter
+import UIKit
+
+final class InstalledAppsMethodHandler {
+    func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        switch call.method {
+        case MethodNames.showFamilyActivityPicker:
+            handleShowFamilyActivityPicker(call: call, result: result)
+        default:
+            result(FlutterMethodNotImplemented)
+        }
+    }
+
+    private func handleShowFamilyActivityPicker(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard #available(iOS 16.0, *) else {
+            result([])
+            return
+        }
+
+        guard let viewController = getPresentationViewController() else {
+            result(PluginErrors.viewControllerError(PluginErrorMessage.viewControllerUnavailable))
+            return
+        }
+
+        var preSelectedTokens: [String]? = nil
+        if let args = call.arguments as? [String: Any],
+           let tokens = args["preSelectedTokens"] as? [String] {
+            preSelectedTokens = tokens
+        }
+
+        FamilyActivityPickerHandler.shared.showPicker(
+            from: viewController,
+            preSelectedTokens: preSelectedTokens
+        ) { selectedApps in
+            result(selectedApps)
+        }
+    }
+
+    private func getPresentationViewController() -> UIViewController? {
+        if #available(iOS 13.0, *) {
+            let scenes = UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .filter { scene in
+                    scene.activationState == .foregroundActive || scene.activationState == .foregroundInactive
+                }
+
+            for scene in scenes {
+                if let root = (scene.windows.first(where: { $0.isKeyWindow }) ??
+                               scene.windows.first(where: { !$0.isHidden }) ??
+                               scene.windows.first)?.rootViewController {
+                    return topMostViewController(from: root)
+                }
+            }
+
+            for scene in UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }) {
+                if let root = scene.windows.first?.rootViewController {
+                    return topMostViewController(from: root)
+                }
+            }
+            return nil
+        } else {
+            return topMostViewController(from: UIApplication.shared.keyWindow?.rootViewController)
+        }
+    }
+
+    private func topMostViewController(from root: UIViewController?) -> UIViewController? {
+        var current = root
+        while let presented = current?.presentedViewController {
+            current = presented
+        }
+        return current
+    }
+}
