@@ -7,7 +7,6 @@ This plugin exposes a typed permission API via `PermissionManager`.
 - On **Android**, most features require the user to enable special settings screens:
   - Usage Access (usage stats)
   - Accessibility service (blocking trigger)
-  - Overlay permission (blocking UI)
 - On **iOS**, Screen Time features require Family Controls authorization.
 
 ## Android permissions
@@ -17,7 +16,6 @@ This plugin exposes a typed permission API via `PermissionManager`.
 These are represented by `AndroidPermission`:
 - `AndroidPermission.usageStats`: Usage Access (Settings → Usage access)
 - `AndroidPermission.accessibility`: Accessibility service (Settings → Accessibility)
-- `AndroidPermission.overlay`: Display over other apps (Settings → Special app access)
 - `AndroidPermission.queryAllPackages`: install-time manifest capability (Android 11+). **This is not requestable at runtime.**
 
 ### Example: request the key permissions
@@ -27,7 +25,6 @@ final permissions = PermissionManager();
 
 await permissions.requestAndroidPermission(AndroidPermission.usageStats);
 await permissions.requestAndroidPermission(AndroidPermission.accessibility);
-await permissions.requestAndroidPermission(AndroidPermission.overlay);
 ```
 
 ### Example: check missing permissions
@@ -38,7 +35,6 @@ final permissions = PermissionManager();
 final missing = await permissions.getMissingAndroidPermissions([
   AndroidPermission.usageStats,
   AndroidPermission.accessibility,
-  AndroidPermission.overlay,
 ]);
 ```
 

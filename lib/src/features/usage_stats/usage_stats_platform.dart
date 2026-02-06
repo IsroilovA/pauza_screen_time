@@ -31,4 +31,3 @@ abstract class UsageStatsPlatform extends PlatformInterface {
     throw UnimplementedError('queryAppUsageStats() has not been implemented.');
   }
 }
-

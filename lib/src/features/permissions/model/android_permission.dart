@@ -23,15 +23,6 @@ enum AndroidPermission {
     description: 'Required to detect when restricted apps are launched',
   ),
 
-  /// Permission to draw overlay windows over other apps.
-  /// Required for displaying the blocking shield.
-  /// Manifest: android.permission.SYSTEM_ALERT_WINDOW
-  overlay(
-    key: 'android.overlay',
-    displayName: 'Display Over Other Apps',
-    description: 'Required to display the blocking screen over restricted apps',
-  ),
-
   /// Permission to query all installed packages.
   /// Required on Android 11+ to enumerate installed apps.
   /// Manifest: android.permission.QUERY_ALL_PACKAGES
@@ -64,4 +55,3 @@ enum AndroidPermission {
     );
   }
 }
-

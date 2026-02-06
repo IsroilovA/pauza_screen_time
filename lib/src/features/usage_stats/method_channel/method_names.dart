@@ -7,4 +7,3 @@ class UsageStatsMethodNames {
   static const String queryUsageStats = 'queryUsageStats';
   static const String queryAppUsageStats = 'queryAppUsageStats';
 }
-

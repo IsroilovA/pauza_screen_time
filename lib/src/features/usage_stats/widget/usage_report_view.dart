@@ -74,4 +74,3 @@ class IOSUsageReportView extends UsageReportView {
     super.key,
   });
 }
-

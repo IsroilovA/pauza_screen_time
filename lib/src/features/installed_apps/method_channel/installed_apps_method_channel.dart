@@ -13,9 +13,8 @@ class InstalledAppsMethodChannel extends InstalledAppsPlatform {
   @visibleForTesting
   final MethodChannel channel;
 
-  InstalledAppsMethodChannel({
-    MethodChannel? channel,
-  }) : channel = channel ?? const MethodChannel(installedAppsChannelName);
+  InstalledAppsMethodChannel({MethodChannel? channel})
+    : channel = channel ?? const MethodChannel(installedAppsChannelName);
 
   @override
   Future<List<Map<dynamic, dynamic>>> getInstalledApps(
@@ -23,13 +22,18 @@ class InstalledAppsMethodChannel extends InstalledAppsPlatform {
     bool includeIcons = true,
   ]) async {
     if (Platform.isIOS) {
-      throw UnsupportedError('getInstalledApps() is only supported on Android.');
+      throw UnsupportedError(
+        'getInstalledApps() is only supported on Android.',
+      );
     }
 
     final result = await BackgroundChannelRunner.invokeMethod<List<dynamic>>(
       channel.name,
       InstalledAppsMethodNames.getInstalledApps,
-      arguments: {'includeSystemApps': includeSystemApps, 'includeIcons': includeIcons},
+      arguments: {
+        'includeSystemApps': includeSystemApps,
+        'includeIcons': includeIcons,
+      },
     );
     if (result == null) return [];
     return result.cast<Map<dynamic, dynamic>>();
@@ -56,7 +60,9 @@ class InstalledAppsMethodChannel extends InstalledAppsPlatform {
     List<String>? preSelectedTokens,
   }) async {
     if (Platform.isAndroid) {
-      throw UnsupportedError('showFamilyActivityPicker() is only supported on iOS.');
+      throw UnsupportedError(
+        'showFamilyActivityPicker() is only supported on iOS.',
+      );
     }
 
     final result = await channel.invokeMethod<List<dynamic>>(
@@ -67,4 +73,3 @@ class InstalledAppsMethodChannel extends InstalledAppsPlatform {
     return result.cast<Map<dynamic, dynamic>>();
   }
 }
-

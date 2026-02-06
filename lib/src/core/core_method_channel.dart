@@ -9,11 +9,11 @@ class CoreMethodChannel {
   @visibleForTesting
   final MethodChannel channel;
 
-  CoreMethodChannel({MethodChannel? channel}) : channel = channel ?? const MethodChannel(MethodChannelNames.core);
+  CoreMethodChannel({MethodChannel? channel})
+    : channel = channel ?? const MethodChannel(MethodChannelNames.core);
 
   /// Returns the current platform version (for testing/debugging).
   Future<String?> getPlatformVersion() {
     return channel.invokeMethod<String>(MethodNames.getPlatformVersion);
   }
 }
-

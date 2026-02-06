@@ -2,4 +2,3 @@
 ///
 /// Keep in sync with native registration.
 const String permissionsChannelName = 'pauza_screen_time/permissions';
-

@@ -27,7 +27,8 @@ abstract class PermissionPlatform extends PlatformInterface {
 
   /// Opens the system settings page for the specified permission.
   Future<void> openPermissionSettings(String permissionKey) {
-    throw UnimplementedError('openPermissionSettings() has not been implemented.');
+    throw UnimplementedError(
+      'openPermissionSettings() has not been implemented.',
+    );
   }
 }
-

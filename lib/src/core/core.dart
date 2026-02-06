@@ -2,4 +2,3 @@
 library;
 
 export 'core_manager.dart';
-

@@ -17,11 +17,12 @@ This page lists common setup issues and how to fix them.
 
 ### Blocking triggers, but shield overlay is not visible
 
-**Likely cause**: Overlay permission is missing.
+**Likely cause**: Accessibility service is enabled, but the plugin’s overlay failed to render due to OEM restrictions or the service not being fully active yet.
 
 **Fix**:
-- Open **Settings → Apps → Special app access → Display over other apps**
-- Allow your app
+- Confirm your app’s accessibility service is enabled (see above)
+- Re-open your app, then try again
+- Try on a different device/OEM to rule out vendor-specific overlay restrictions
 
 ### Usage stats are empty
 

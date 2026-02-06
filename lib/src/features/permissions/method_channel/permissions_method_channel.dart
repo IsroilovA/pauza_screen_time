@@ -11,9 +11,8 @@ class PermissionsMethodChannel extends PermissionPlatform {
   @visibleForTesting
   final MethodChannel channel;
 
-  PermissionsMethodChannel({
-    MethodChannel? channel,
-  }) : channel = channel ?? const MethodChannel(permissionsChannelName);
+  PermissionsMethodChannel({MethodChannel? channel})
+    : channel = channel ?? const MethodChannel(permissionsChannelName);
 
   @override
   Future<PermissionStatus> checkPermission(String permissionKey) async {
@@ -22,7 +21,9 @@ class PermissionsMethodChannel extends PermissionPlatform {
       {'permissionKey': permissionKey},
     );
     if (result == null) {
-      throw StateError('Native layer returned null for permission check: $permissionKey');
+      throw StateError(
+        'Native layer returned null for permission check: $permissionKey',
+      );
     }
     return PermissionStatus.fromString(result);
   }
@@ -44,4 +45,3 @@ class PermissionsMethodChannel extends PermissionPlatform {
     );
   }
 }
-

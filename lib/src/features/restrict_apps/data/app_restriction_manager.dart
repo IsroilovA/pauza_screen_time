@@ -6,9 +6,8 @@ import 'package:pauza_screen_time/src/features/restrict_apps/model/shield_config
 class AppRestrictionManager {
   final AppRestrictionPlatform _platform;
 
-  AppRestrictionManager({
-    AppRestrictionPlatform? platform,
-  }) : _platform = platform ?? RestrictionsMethodChannel();
+  AppRestrictionManager({AppRestrictionPlatform? platform})
+    : _platform = platform ?? RestrictionsMethodChannel();
 
   // ============================================================
   // Shield Configuration
@@ -71,4 +70,3 @@ class AppRestrictionManager {
     return _platform.isRestricted(packageId);
   }
 }
-

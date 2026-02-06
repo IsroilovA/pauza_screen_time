@@ -8,9 +8,8 @@ import 'package:pauza_screen_time/src/features/installed_apps/model/app_info.dar
 class InstalledAppsManager {
   final InstalledAppsPlatform _platform;
 
-  InstalledAppsManager({
-    InstalledAppsPlatform? platform,
-  }) : _platform = platform ?? InstalledAppsMethodChannel();
+  InstalledAppsManager({InstalledAppsPlatform? platform})
+    : _platform = platform ?? InstalledAppsMethodChannel();
 
   // ============================================================
   // Android-Only Methods
@@ -27,10 +26,15 @@ class InstalledAppsManager {
     bool includeIcons = true,
   }) async {
     if (!Platform.isAndroid) {
-      throw UnsupportedError('getAndroidInstalledApps is only available on Android');
+      throw UnsupportedError(
+        'getAndroidInstalledApps is only available on Android',
+      );
     }
 
-    final result = await _platform.getInstalledApps(includeSystemApps, includeIcons);
+    final result = await _platform.getInstalledApps(
+      includeSystemApps,
+      includeIcons,
+    );
     return result
         .map((item) => AppInfo.fromMap(Map<String, dynamic>.from(item)))
         .whereType<AndroidAppInfo>()
@@ -67,7 +71,9 @@ class InstalledAppsManager {
   /// Returns true if the app is installed, false otherwise.
   Future<bool> isAndroidAppInstalled(String packageId) async {
     if (!Platform.isAndroid) {
-      throw UnsupportedError('isAndroidAppInstalled is only available on Android');
+      throw UnsupportedError(
+        'isAndroidAppInstalled is only available on Android',
+      );
     }
 
     final appInfo = await getAndroidAppInfo(packageId);
@@ -90,19 +96,24 @@ class InstalledAppsManager {
   ///
   /// iOS does not allow enumerating installed apps. Persist these tokens yourself
   /// if you want to re-open the picker with a previous selection.
-  Future<List<IOSAppInfo>> selectIOSApps({List<IOSAppInfo>? preSelectedApps}) async {
+  Future<List<IOSAppInfo>> selectIOSApps({
+    List<IOSAppInfo>? preSelectedApps,
+  }) async {
     if (!Platform.isIOS) {
       throw UnsupportedError('selectIOSApps is only available on iOS');
     }
 
     // Extract tokens from pre-selected apps
-    final preSelectedTokens = preSelectedApps?.map((app) => app.applicationToken).toList();
+    final preSelectedTokens = preSelectedApps
+        ?.map((app) => app.applicationToken)
+        .toList();
 
-    final result = await _platform.showFamilyActivityPicker(preSelectedTokens: preSelectedTokens);
+    final result = await _platform.showFamilyActivityPicker(
+      preSelectedTokens: preSelectedTokens,
+    );
     return result
         .map((item) => AppInfo.fromMap(Map<String, dynamic>.from(item)))
         .whereType<IOSAppInfo>()
         .toList();
   }
 }
-

@@ -8,4 +8,3 @@ class PermissionsMethodNames {
   static const String requestPermission = 'requestPermission';
   static const String openPermissionSettings = 'openPermissionSettings';
 }
-

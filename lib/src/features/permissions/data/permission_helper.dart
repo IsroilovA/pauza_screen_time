@@ -23,12 +23,16 @@ class PermissionHelper {
     final results = <String, PermissionStatus>{};
 
     if (Platform.isAndroid) {
-      final typed = await _permissionManager.checkAndroidPermissions(AndroidPermission.values);
+      final typed = await _permissionManager.checkAndroidPermissions(
+        AndroidPermission.values,
+      );
       for (final entry in typed.entries) {
         results[entry.key.key] = entry.value;
       }
     } else if (Platform.isIOS) {
-      final typed = await _permissionManager.checkIOSPermissions(IOSPermission.values);
+      final typed = await _permissionManager.checkIOSPermissions(
+        IOSPermission.values,
+      );
       for (final entry in typed.entries) {
         results[entry.key.key] = entry.value;
       }
@@ -43,10 +47,15 @@ class PermissionHelper {
   Future<bool> requestAllRequiredPermissions() async {
     if (Platform.isAndroid) {
       final results = await Future.wait([
-        _permissionManager.requestAndroidPermission(AndroidPermission.usageStats),
-        _permissionManager.requestAndroidPermission(AndroidPermission.accessibility),
-        _permissionManager.requestAndroidPermission(AndroidPermission.overlay),
-        _permissionManager.requestAndroidPermission(AndroidPermission.queryAllPackages),
+        _permissionManager.requestAndroidPermission(
+          AndroidPermission.usageStats,
+        ),
+        _permissionManager.requestAndroidPermission(
+          AndroidPermission.accessibility,
+        ),
+        _permissionManager.requestAndroidPermission(
+          AndroidPermission.queryAllPackages,
+        ),
       ]);
       return results.every((granted) => granted);
     } else if (Platform.isIOS) {
@@ -75,4 +84,3 @@ class PermissionHelper {
         .toList();
   }
 }
-

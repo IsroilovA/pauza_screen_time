@@ -12,9 +12,8 @@ import 'package:pauza_screen_time/src/features/usage_stats/usage_stats_platform.
 class UsageStatsManager {
   final UsageStatsPlatform _platform;
 
-  UsageStatsManager({
-    UsageStatsPlatform? platform,
-  }) : _platform = platform ?? UsageStatsMethodChannel();
+  UsageStatsManager({UsageStatsPlatform? platform})
+    : _platform = platform ?? UsageStatsMethodChannel();
 
   // ============================================================
   // Usage Stats Queries (Android Only)
@@ -43,7 +42,9 @@ class UsageStatsManager {
       includeIcons: includeIcons,
     );
 
-    return result.map((item) => UsageStats.fromMap(Map<String, dynamic>.from(item))).toList();
+    return result
+        .map((item) => UsageStats.fromMap(Map<String, dynamic>.from(item)))
+        .toList();
   }
 
   /// Returns usage statistics for a specific app.
@@ -75,4 +76,3 @@ class UsageStatsManager {
     return UsageStats.fromMap(Map<String, dynamic>.from(result));
   }
 }
-

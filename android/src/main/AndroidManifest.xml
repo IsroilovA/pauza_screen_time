@@ -6,9 +6,6 @@
   <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
       tools:ignore="ProtectedPermissions" />
   
-  <!-- Permission to draw overlay windows over other apps -->
-  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-  
   <!-- Permission to query all installed packages (Android 11+) -->
   <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
       tools:ignore="QueryAllPackagesPermission" />

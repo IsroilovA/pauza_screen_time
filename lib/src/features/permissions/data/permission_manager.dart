@@ -10,9 +10,8 @@ import 'package:pauza_screen_time/src/features/permissions/permission_platform.d
 class PermissionManager {
   final PermissionPlatform _platform;
 
-  PermissionManager({
-    PermissionPlatform? platform,
-  }) : _platform = platform ?? PermissionsMethodChannel();
+  PermissionManager({PermissionPlatform? platform})
+    : _platform = platform ?? PermissionsMethodChannel();
 
   // ============================================================
   // Android Permissions
@@ -21,7 +20,9 @@ class PermissionManager {
   /// Checks the status of an Android permission.
   ///
   /// Only call this on Android platform.
-  Future<PermissionStatus> checkAndroidPermission(AndroidPermission permission) {
+  Future<PermissionStatus> checkAndroidPermission(
+    AndroidPermission permission,
+  ) {
     assert(Platform.isAndroid, 'This method is only available on Android');
     return _platform.checkPermission(permission.key);
   }
@@ -119,7 +120,9 @@ class PermissionManager {
   ///
   /// If [subset] is provided, only checks those permissions.
   /// Otherwise, checks all iOS permissions.
-  Future<List<IOSPermission>> getMissingIOSPermissions([List<IOSPermission>? subset]) async {
+  Future<List<IOSPermission>> getMissingIOSPermissions([
+    List<IOSPermission>? subset,
+  ]) async {
     assert(Platform.isIOS, 'This method is only available on iOS');
     final permissionsToCheck = subset ?? IOSPermission.values;
     final statuses = await checkIOSPermissions(permissionsToCheck);
@@ -129,4 +132,3 @@ class PermissionManager {
         .toList();
   }
 }
-

@@ -16,9 +16,8 @@ class UsageStatsMethodChannel extends UsageStatsPlatform {
   @visibleForTesting
   final MethodChannel channel;
 
-  UsageStatsMethodChannel({
-    MethodChannel? channel,
-  }) : channel = channel ?? const MethodChannel(usageStatsChannelName);
+  UsageStatsMethodChannel({MethodChannel? channel})
+    : channel = channel ?? const MethodChannel(usageStatsChannelName);
 
   @override
   Future<List<Map<dynamic, dynamic>>> queryUsageStats({
@@ -36,7 +35,11 @@ class UsageStatsMethodChannel extends UsageStatsPlatform {
     final result = await BackgroundChannelRunner.invokeMethod<List<dynamic>>(
       channel.name,
       UsageStatsMethodNames.queryUsageStats,
-      arguments: {'startTimeMs': startTimeMs, 'endTimeMs': endTimeMs, 'includeIcons': includeIcons},
+      arguments: {
+        'startTimeMs': startTimeMs,
+        'endTimeMs': endTimeMs,
+        'includeIcons': includeIcons,
+      },
     );
     if (result == null) return [];
     return result.cast<Map<dynamic, dynamic>>();
@@ -68,4 +71,3 @@ class UsageStatsMethodChannel extends UsageStatsPlatform {
     );
   }
 }
-

@@ -18,7 +18,7 @@ import 'package:pauza_screen_time/pauza_screen_time.dart';
 
 ## 1) Do platform setup first
 
-- **Android**: follow [Android setup](android-setup.md) (Usage Access + Accessibility + Overlay).
+- **Android**: follow [Android setup](android-setup.md) (Usage Access + Accessibility).
 - **iOS**: follow [iOS setup](ios-setup.md) (Screen Time authorization + App Groups + required extensions).
 
 If you skip these, calls may succeed but features won’t work (for example: blocking won’t trigger if the accessibility service is not enabled).
@@ -44,7 +44,6 @@ final permissions = PermissionManager();
 
 await permissions.requestAndroidPermission(AndroidPermission.usageStats);
 await permissions.requestAndroidPermission(AndroidPermission.accessibility);
-await permissions.requestAndroidPermission(AndroidPermission.overlay);
 ```
 
 2) Pick apps to restrict (package names) and apply restrictions:

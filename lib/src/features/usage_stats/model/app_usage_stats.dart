@@ -53,15 +53,20 @@ class UsageStats {
       appInfo: AndroidAppInfo(
         packageId: map['packageId'] as String,
         name: map['appName'] as String? ?? map['packageId'] as String,
-        icon: map['appIcon'] != null ? Uint8List.fromList(List<int>.from(map['appIcon'] as List)) : null,
+        icon: map['appIcon'] != null
+            ? Uint8List.fromList(List<int>.from(map['appIcon'] as List))
+            : null,
         category: map['category'] as String?,
         isSystemApp: map['isSystemApp'] as bool? ?? false,
       ),
       totalDuration: Duration(milliseconds: map['totalDurationMs'] as int),
       totalLaunchCount: map['totalLaunchCount'] as int,
-      firstUsed:
-          map['firstUsedMs'] != null ? DateTime.fromMillisecondsSinceEpoch(map['firstUsedMs'] as int) : null,
-      lastUsed: map['lastUsedMs'] != null ? DateTime.fromMillisecondsSinceEpoch(map['lastUsedMs'] as int) : null,
+      firstUsed: map['firstUsedMs'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['firstUsedMs'] as int)
+          : null,
+      lastUsed: map['lastUsedMs'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['lastUsedMs'] as int)
+          : null,
       firstTimeStamp: map['firstTimeStampMs'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['firstTimeStampMs'] as int)
           : null,
@@ -105,6 +110,6 @@ class UsageStats {
   int get hashCode => Object.hash(appInfo, totalDuration, totalLaunchCount);
 
   @override
-  String toString() => 'UsageStats(appInfo: $appInfo, totalDuration: $totalDuration, launches: $totalLaunchCount)';
+  String toString() =>
+      'UsageStats(appInfo: $appInfo, totalDuration: $totalDuration, launches: $totalLaunchCount)';
 }
-

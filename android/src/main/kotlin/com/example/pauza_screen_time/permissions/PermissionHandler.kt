@@ -17,7 +17,6 @@ import com.example.pauza_screen_time.app_restriction.AppMonitoringService
  * This class manages all permission-related operations for the plugin including:
  * - Usage stats permission (PACKAGE_USAGE_STATS)
  * - Accessibility service permission
- * - Overlay permission (SYSTEM_ALERT_WINDOW)
  * - Query all packages permission (QUERY_ALL_PACKAGES)
  */
 class PermissionHandler(private val context: Context) {
@@ -26,7 +25,6 @@ class PermissionHandler(private val context: Context) {
         // Permission keys matching Flutter AndroidPermission enum
         const val USAGE_STATS_KEY = "android.usageStats"
         const val ACCESSIBILITY_KEY = "android.accessibility"
-        const val OVERLAY_KEY = "android.overlay"
         const val QUERY_ALL_PACKAGES_KEY = "android.queryAllPackages"
 
         // Permission status strings matching Flutter PermissionStatus enum
@@ -37,7 +35,6 @@ class PermissionHandler(private val context: Context) {
         // Request codes for permission results
         const val REQUEST_USAGE_STATS = 1001
         const val REQUEST_ACCESSIBILITY = 1002
-        const val REQUEST_OVERLAY = 1003
     }
 
     /**
@@ -50,7 +47,6 @@ class PermissionHandler(private val context: Context) {
         return when (permissionKey) {
             USAGE_STATS_KEY -> checkUsageStatsPermission()
             ACCESSIBILITY_KEY -> checkAccessibilityPermission()
-            OVERLAY_KEY -> checkOverlayPermission()
             QUERY_ALL_PACKAGES_KEY -> checkQueryAllPackagesPermission()
             else -> STATUS_UNKNOWN
         }
@@ -67,7 +63,6 @@ class PermissionHandler(private val context: Context) {
         return when (permissionKey) {
             USAGE_STATS_KEY -> requestUsageStatsPermission(activity)
             ACCESSIBILITY_KEY -> requestAccessibilityPermission(activity)
-            OVERLAY_KEY -> requestOverlayPermission(activity)
             QUERY_ALL_PACKAGES_KEY -> {
                 // QUERY_ALL_PACKAGES is a manifest permission, cannot be requested at runtime
                 // User needs to allow it in the manifest and potentially through Play Store review
@@ -87,7 +82,6 @@ class PermissionHandler(private val context: Context) {
         when (permissionKey) {
             USAGE_STATS_KEY -> openUsageStatsSettings(activity)
             ACCESSIBILITY_KEY -> openAccessibilitySettings(activity)
-            OVERLAY_KEY -> openOverlaySettings(activity)
             QUERY_ALL_PACKAGES_KEY -> openAppDetailsSettings(activity)
             else -> openAppDetailsSettings(activity)
         }
@@ -177,51 +171,6 @@ class PermissionHandler(private val context: Context) {
             activity.startActivity(intent)
         } catch (e: Exception) {
             // Fallback to app settings
-            openAppDetailsSettings(activity)
-        }
-    }
-
-    // ============= Overlay Permission =============
-
-    private fun checkOverlayPermission(): String {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (Settings.canDrawOverlays(context)) STATUS_GRANTED else STATUS_DENIED
-        } else {
-            // Pre-Marshmallow devices don't need runtime permission
-            STATUS_GRANTED
-        }
-    }
-
-    private fun requestOverlayPermission(activity: Activity): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                val intent = Intent(
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:${context.packageName}")
-                )
-                activity.startActivityForResult(intent, REQUEST_OVERLAY)
-                true
-            } catch (e: Exception) {
-                false
-            }
-        } else {
-            // Pre-Marshmallow, permission is granted by default
-            true
-        }
-    }
-
-    private fun openOverlaySettings(activity: Activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                val intent = Intent(
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:${context.packageName}")
-                )
-                activity.startActivity(intent)
-            } catch (e: Exception) {
-                openAppDetailsSettings(activity)
-            }
-        } else {
             openAppDetailsSettings(activity)
         }
     }

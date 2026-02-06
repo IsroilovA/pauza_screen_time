@@ -40,7 +40,9 @@ abstract class AppRestrictionPlatform extends PlatformInterface {
 
   /// Removes all app restrictions.
   Future<void> removeAllRestrictions() {
-    throw UnimplementedError('removeAllRestrictions() has not been implemented.');
+    throw UnimplementedError(
+      'removeAllRestrictions() has not been implemented.',
+    );
   }
 
   /// Returns the list of currently restricted package IDs.
@@ -48,4 +50,3 @@ abstract class AppRestrictionPlatform extends PlatformInterface {
     throw UnimplementedError('getRestrictedApps() has not been implemented.');
   }
 }
-

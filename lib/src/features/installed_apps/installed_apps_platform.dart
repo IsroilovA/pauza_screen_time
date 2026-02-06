@@ -37,8 +37,11 @@ abstract class InstalledAppsPlatform extends PlatformInterface {
   /// that should appear pre-selected when the picker opens.
   ///
   /// Only available on iOS.
-  Future<List<Map<dynamic, dynamic>>> showFamilyActivityPicker({List<String>? preSelectedTokens}) {
-    throw UnimplementedError('showFamilyActivityPicker() has not been implemented.');
+  Future<List<Map<dynamic, dynamic>>> showFamilyActivityPicker({
+    List<String>? preSelectedTokens,
+  }) {
+    throw UnimplementedError(
+      'showFamilyActivityPicker() has not been implemented.',
+    );
   }
 }
-

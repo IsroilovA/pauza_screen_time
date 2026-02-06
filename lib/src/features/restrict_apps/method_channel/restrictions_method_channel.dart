@@ -10,13 +10,15 @@ class RestrictionsMethodChannel extends AppRestrictionPlatform {
   @visibleForTesting
   final MethodChannel channel;
 
-  RestrictionsMethodChannel({
-    MethodChannel? channel,
-  }) : channel = channel ?? const MethodChannel(restrictionsChannelName);
+  RestrictionsMethodChannel({MethodChannel? channel})
+    : channel = channel ?? const MethodChannel(restrictionsChannelName);
 
   @override
   Future<void> configureShield(Map<String, dynamic> configuration) {
-    return channel.invokeMethod<void>(RestrictionsMethodNames.configureShield, configuration);
+    return channel.invokeMethod<void>(
+      RestrictionsMethodNames.configureShield,
+      configuration,
+    );
   }
 
   @override
@@ -58,14 +60,17 @@ class RestrictionsMethodChannel extends AppRestrictionPlatform {
 
   @override
   Future<void> removeAllRestrictions() {
-    return channel.invokeMethod<void>(RestrictionsMethodNames.removeAllRestrictions);
+    return channel.invokeMethod<void>(
+      RestrictionsMethodNames.removeAllRestrictions,
+    );
   }
 
   @override
   Future<List<String>> getRestrictedApps() async {
-    final result = await channel.invokeMethod<List<dynamic>>(RestrictionsMethodNames.getRestrictedApps);
+    final result = await channel.invokeMethod<List<dynamic>>(
+      RestrictionsMethodNames.getRestrictedApps,
+    );
     if (result == null) return [];
     return result.cast<String>();
   }
 }
-

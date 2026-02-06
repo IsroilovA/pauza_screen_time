@@ -141,4 +141,3 @@ class IOSAppInfo extends AppInfo {
   String toString() =>
       'IOSAppInfo(token: ${applicationToken.length > 20 ? applicationToken.substring(0, 20) : applicationToken}...)';
 }
-

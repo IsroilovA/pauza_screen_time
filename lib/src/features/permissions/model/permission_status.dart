@@ -33,7 +33,8 @@ enum PermissionStatus {
 
   /// Whether the permission can be requested.
   /// True if status is denied or notDetermined.
-  bool get canRequest => this == PermissionStatus.denied || this == PermissionStatus.notDetermined;
+  bool get canRequest =>
+      this == PermissionStatus.denied || this == PermissionStatus.notDetermined;
 
   /// Creates a PermissionStatus from its string representation.
   ///
@@ -55,4 +56,3 @@ enum PermissionStatus {
     }
   }
 }
-

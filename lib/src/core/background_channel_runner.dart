@@ -46,7 +46,9 @@ class BackgroundChannelRunner {
     responsePort.close();
 
     if (message is! Map) {
-      throw StateError('Background isolate returned an unexpected message: $message');
+      throw StateError(
+        'Background isolate returned an unexpected message: $message',
+      );
     }
 
     final ok = message['ok'] as bool? ?? false;
@@ -63,7 +65,8 @@ class BackgroundChannelRunner {
       );
     }
 
-    final error = message['error'] as String? ?? 'Unknown background isolate error';
+    final error =
+        message['error'] as String? ?? 'Unknown background isolate error';
     final stack = message['stack'] as String?;
     throw StateError(stack == null ? error : '$error\n$stack');
   }
@@ -99,4 +102,3 @@ Future<void> _backgroundInvokeEntry(Map<String, Object?> message) async {
     });
   }
 }
-

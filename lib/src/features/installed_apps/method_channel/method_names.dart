@@ -10,4 +10,3 @@ class InstalledAppsMethodNames {
   // iOS
   static const String showFamilyActivityPicker = 'showFamilyActivityPicker';
 }
-
