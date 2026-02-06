@@ -1,5 +1,7 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import 'package:pauza_screen_time/src/core/cancel_token.dart';
+
 /// Platform interface for usage statistics functionality.
 abstract class UsageStatsPlatform extends PlatformInterface {
   UsageStatsPlatform() : super(token: _token);
@@ -14,6 +16,8 @@ abstract class UsageStatsPlatform extends PlatformInterface {
     required int startTimeMs,
     required int endTimeMs,
     bool includeIcons = true,
+    CancelToken? cancelToken,
+    Duration timeout = const Duration(seconds: 30),
   }) {
     throw UnimplementedError('queryUsageStats() has not been implemented.');
   }
@@ -27,6 +31,8 @@ abstract class UsageStatsPlatform extends PlatformInterface {
     required int startTimeMs,
     required int endTimeMs,
     bool includeIcons = true,
+    CancelToken? cancelToken,
+    Duration timeout = const Duration(seconds: 30),
   }) {
     throw UnimplementedError('queryAppUsageStats() has not been implemented.');
   }

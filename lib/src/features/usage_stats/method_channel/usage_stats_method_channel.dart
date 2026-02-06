@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'package:pauza_screen_time/src/core/background_channel_runner.dart';
+import 'package:pauza_screen_time/src/core/cancel_token.dart';
 import 'package:pauza_screen_time/src/features/usage_stats/usage_stats_platform.dart';
 import 'package:pauza_screen_time/src/features/usage_stats/method_channel/channel_name.dart';
 import 'package:pauza_screen_time/src/features/usage_stats/method_channel/method_names.dart';
@@ -24,6 +25,8 @@ class UsageStatsMethodChannel extends UsageStatsPlatform {
     required int startTimeMs,
     required int endTimeMs,
     bool includeIcons = true,
+    CancelToken? cancelToken,
+    Duration timeout = const Duration(seconds: 30),
   }) async {
     if (Platform.isIOS) {
       throw UnsupportedError(
@@ -40,6 +43,8 @@ class UsageStatsMethodChannel extends UsageStatsPlatform {
         'endTimeMs': endTimeMs,
         'includeIcons': includeIcons,
       },
+      cancelToken: cancelToken,
+      timeout: timeout,
     );
     if (result == null) return [];
     return result.cast<Map<dynamic, dynamic>>();
@@ -51,6 +56,8 @@ class UsageStatsMethodChannel extends UsageStatsPlatform {
     required int startTimeMs,
     required int endTimeMs,
     bool includeIcons = true,
+    CancelToken? cancelToken,
+    Duration timeout = const Duration(seconds: 30),
   }) {
     if (Platform.isIOS) {
       throw UnsupportedError(
@@ -68,6 +75,8 @@ class UsageStatsMethodChannel extends UsageStatsPlatform {
         'endTimeMs': endTimeMs,
         'includeIcons': includeIcons,
       },
+      cancelToken: cancelToken,
+      timeout: timeout,
     );
   }
 }

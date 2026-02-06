@@ -111,6 +111,7 @@ class _UsageScreenState extends State<UsageScreen> {
       lastDate: now,
     );
     if (start == null) return;
+    if (!mounted) return;
 
     final end = await showDatePicker(
       context: context,
@@ -119,6 +120,7 @@ class _UsageScreenState extends State<UsageScreen> {
       lastDate: now,
     );
     if (end == null) return;
+    if (!mounted) return;
 
     setState(() {
       _startDate = start;

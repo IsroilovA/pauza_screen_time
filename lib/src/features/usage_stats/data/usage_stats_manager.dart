@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'package:pauza_screen_time/src/core/cancel_token.dart';
 import 'package:pauza_screen_time/src/features/usage_stats/method_channel/usage_stats_method_channel.dart';
 import 'package:pauza_screen_time/src/features/usage_stats/model/app_usage_stats.dart';
 import 'package:pauza_screen_time/src/features/usage_stats/usage_stats_platform.dart';
@@ -28,6 +29,8 @@ class UsageStatsManager {
     required DateTime startDate,
     required DateTime endDate,
     bool includeIcons = true,
+    CancelToken? cancelToken,
+    Duration timeout = const Duration(seconds: 30),
   }) async {
     if (!Platform.isAndroid) {
       throw UnsupportedError(
@@ -40,6 +43,8 @@ class UsageStatsManager {
       startTimeMs: startDate.millisecondsSinceEpoch,
       endTimeMs: endDate.millisecondsSinceEpoch,
       includeIcons: includeIcons,
+      cancelToken: cancelToken,
+      timeout: timeout,
     );
 
     return result
@@ -57,6 +62,8 @@ class UsageStatsManager {
     required DateTime startDate,
     required DateTime endDate,
     bool includeIcons = true,
+    CancelToken? cancelToken,
+    Duration timeout = const Duration(seconds: 30),
   }) async {
     if (!Platform.isAndroid) {
       throw UnsupportedError(
@@ -70,6 +77,8 @@ class UsageStatsManager {
       startTimeMs: startDate.millisecondsSinceEpoch,
       endTimeMs: endDate.millisecondsSinceEpoch,
       includeIcons: includeIcons,
+      cancelToken: cancelToken,
+      timeout: timeout,
     );
 
     if (result == null) return null;

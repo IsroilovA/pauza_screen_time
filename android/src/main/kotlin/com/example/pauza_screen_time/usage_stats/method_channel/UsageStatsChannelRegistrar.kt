@@ -22,6 +22,7 @@ internal class UsageStatsChannelRegistrar {
     fun detach() {
         channel?.setMethodCallHandler(null)
         channel = null
+        methodHandler?.detach()
         methodHandler = null
         usageStatsHandler = null
     }

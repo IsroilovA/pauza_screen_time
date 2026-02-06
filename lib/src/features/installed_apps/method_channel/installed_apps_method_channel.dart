@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'package:pauza_screen_time/src/core/background_channel_runner.dart';
+import 'package:pauza_screen_time/src/core/cancel_token.dart';
 import 'package:pauza_screen_time/src/features/installed_apps/installed_apps_platform.dart';
 import 'package:pauza_screen_time/src/features/installed_apps/method_channel/channel_name.dart';
 import 'package:pauza_screen_time/src/features/installed_apps/method_channel/method_names.dart';
@@ -18,9 +19,11 @@ class InstalledAppsMethodChannel extends InstalledAppsPlatform {
 
   @override
   Future<List<Map<dynamic, dynamic>>> getInstalledApps(
-    bool includeSystemApps, [
+    bool includeSystemApps, {
     bool includeIcons = true,
-  ]) async {
+    CancelToken? cancelToken,
+    Duration timeout = const Duration(seconds: 30),
+  }) async {
     if (Platform.isIOS) {
       throw UnsupportedError(
         'getInstalledApps() is only supported on Android.',
@@ -34,6 +37,8 @@ class InstalledAppsMethodChannel extends InstalledAppsPlatform {
         'includeSystemApps': includeSystemApps,
         'includeIcons': includeIcons,
       },
+      cancelToken: cancelToken,
+      timeout: timeout,
     );
     if (result == null) return [];
     return result.cast<Map<dynamic, dynamic>>();
@@ -41,9 +46,11 @@ class InstalledAppsMethodChannel extends InstalledAppsPlatform {
 
   @override
   Future<Map<dynamic, dynamic>?> getAppInfo(
-    String packageId, [
+    String packageId, {
     bool includeIcons = true,
-  ]) {
+    CancelToken? cancelToken,
+    Duration timeout = const Duration(seconds: 30),
+  }) {
     if (Platform.isIOS) {
       throw UnsupportedError('getAppInfo() is only supported on Android.');
     }
@@ -52,6 +59,8 @@ class InstalledAppsMethodChannel extends InstalledAppsPlatform {
       channel.name,
       InstalledAppsMethodNames.getAppInfo,
       arguments: {'packageId': packageId, 'includeIcons': includeIcons},
+      cancelToken: cancelToken,
+      timeout: timeout,
     );
   }
 

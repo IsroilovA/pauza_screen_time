@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:pauza_screen_time/src/core/cancel_token.dart';
 import 'package:pauza_screen_time/src/features/installed_apps/installed_apps_platform.dart';
 import 'package:pauza_screen_time/src/features/installed_apps/method_channel/installed_apps_method_channel.dart';
 import 'package:pauza_screen_time/src/features/installed_apps/model/app_info.dart';
@@ -24,6 +25,8 @@ class InstalledAppsManager {
   Future<List<AndroidAppInfo>> getAndroidInstalledApps({
     bool includeSystemApps = false,
     bool includeIcons = true,
+    CancelToken? cancelToken,
+    Duration timeout = const Duration(seconds: 30),
   }) async {
     if (!Platform.isAndroid) {
       throw UnsupportedError(
@@ -33,7 +36,9 @@ class InstalledAppsManager {
 
     final result = await _platform.getInstalledApps(
       includeSystemApps,
-      includeIcons,
+      includeIcons: includeIcons,
+      cancelToken: cancelToken,
+      timeout: timeout,
     );
     return result
         .map((item) => AppInfo.fromMap(Map<String, dynamic>.from(item)))
@@ -51,12 +56,19 @@ class InstalledAppsManager {
   Future<AndroidAppInfo?> getAndroidAppInfo(
     String packageId, {
     bool includeIcons = true,
+    CancelToken? cancelToken,
+    Duration timeout = const Duration(seconds: 30),
   }) async {
     if (!Platform.isAndroid) {
       throw UnsupportedError('getAndroidAppInfo is only available on Android');
     }
 
-    final result = await _platform.getAppInfo(packageId, includeIcons);
+    final result = await _platform.getAppInfo(
+      packageId,
+      includeIcons: includeIcons,
+      cancelToken: cancelToken,
+      timeout: timeout,
+    );
     if (result == null) return null;
 
     final appInfo = AppInfo.fromMap(Map<String, dynamic>.from(result));

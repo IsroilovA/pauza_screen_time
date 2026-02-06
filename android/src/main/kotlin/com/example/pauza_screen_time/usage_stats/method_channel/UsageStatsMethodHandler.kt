@@ -7,10 +7,18 @@ import com.example.pauza_screen_time.usage_stats.UsageStatsHandler
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class UsageStatsMethodHandler(
     private val usageStatsHandler: UsageStatsHandler
 ) : MethodCallHandler {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     override fun onMethodCall(call: MethodCall, result: Result) {
         try {
             when (call.method) {
@@ -23,6 +31,10 @@ class UsageStatsMethodHandler(
         }
     }
 
+    fun detach() {
+        scope.cancel()
+    }
+
     private fun handleQueryUsageStats(call: MethodCall, result: Result) {
         val startTimeMs = call.argument<Long>("startTimeMs")
         val endTimeMs = call.argument<Long>("endTimeMs")
@@ -33,16 +45,22 @@ class UsageStatsMethodHandler(
             return
         }
 
-        try {
-            val stats = usageStatsHandler.queryUsageStats(startTimeMs, endTimeMs, includeIcons)
-            result.success(stats)
-        } catch (e: Exception) {
-            PluginErrorHelper.error(
-                result,
-                PluginErrors.CODE_QUERY_USAGE_STATS_ERROR,
-                "Failed to query usage stats: ${e.message}",
-                e
-            )
+        scope.launch {
+            try {
+                val stats = usageStatsHandler.queryUsageStats(startTimeMs, endTimeMs, includeIcons)
+                withContext(Dispatchers.Main) {
+                    result.success(stats)
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    PluginErrorHelper.error(
+                        result,
+                        PluginErrors.CODE_QUERY_USAGE_STATS_ERROR,
+                        "Failed to query usage stats: ${e.message}",
+                        e
+                    )
+                }
+            }
         }
     }
 
@@ -57,16 +75,22 @@ class UsageStatsMethodHandler(
             return
         }
 
-        try {
-            val stats = usageStatsHandler.queryAppUsageStats(packageId, startTimeMs, endTimeMs, includeIcons)
-            result.success(stats)
-        } catch (e: Exception) {
-            PluginErrorHelper.error(
-                result,
-                PluginErrors.CODE_QUERY_APP_USAGE_STATS_ERROR,
-                "Failed to query app usage stats: ${e.message}",
-                e
-            )
+        scope.launch {
+            try {
+                val stats = usageStatsHandler.queryAppUsageStats(packageId, startTimeMs, endTimeMs, includeIcons)
+                withContext(Dispatchers.Main) {
+                    result.success(stats)
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    PluginErrorHelper.error(
+                        result,
+                        PluginErrors.CODE_QUERY_APP_USAGE_STATS_ERROR,
+                        "Failed to query app usage stats: ${e.message}",
+                        e
+                    )
+                }
+            }
         }
     }
 }

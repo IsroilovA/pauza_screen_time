@@ -71,6 +71,9 @@ android {
         // For ComposeView in WindowManager overlay
         implementation("androidx.activity:activity-compose:1.9.3")
         implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+
+        // Coroutines for background method handlers
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
         
         // Test dependencies
         testImplementation("org.jetbrains.kotlin:kotlin-test")

@@ -49,13 +49,18 @@ class UsageStats {
 
   /// Creates a UsageStats from a map (used for platform channel deserialization).
   factory UsageStats.fromMap(Map<String, dynamic> map) {
+    final rawIcon = map['appIcon'];
+    final icon = rawIcon is Uint8List
+        ? rawIcon
+        : rawIcon is List
+            ? Uint8List.fromList(List<int>.from(rawIcon))
+            : null;
+
     return UsageStats(
       appInfo: AndroidAppInfo(
         packageId: map['packageId'] as String,
         name: map['appName'] as String? ?? map['packageId'] as String,
-        icon: map['appIcon'] != null
-            ? Uint8List.fromList(List<int>.from(map['appIcon'] as List))
-            : null,
+        icon: icon,
         category: map['category'] as String?,
         isSystemApp: map['isSystemApp'] as bool? ?? false,
       ),

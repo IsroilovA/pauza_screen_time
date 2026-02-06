@@ -1,5 +1,7 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import 'package:pauza_screen_time/src/core/cancel_token.dart';
+
 /// Platform interface for installed apps functionality.
 ///
 /// Defines the contract for platform-specific implementations
@@ -14,9 +16,11 @@ abstract class InstalledAppsPlatform extends PlatformInterface {
   /// [includeSystemApps] - Whether to include system apps.
   /// [includeIcons] - Whether to include app icons (default: true).
   Future<List<Map<dynamic, dynamic>>> getInstalledApps(
-    bool includeSystemApps, [
+    bool includeSystemApps, {
     bool includeIcons = true,
-  ]) {
+    CancelToken? cancelToken,
+    Duration timeout = const Duration(seconds: 30),
+  }) {
     throw UnimplementedError('getInstalledApps() has not been implemented.');
   }
 
@@ -25,9 +29,11 @@ abstract class InstalledAppsPlatform extends PlatformInterface {
   /// Returns null if the app is not found.
   /// [includeIcons] - Whether to include app icons (default: true).
   Future<Map<dynamic, dynamic>?> getAppInfo(
-    String packageId, [
+    String packageId, {
     bool includeIcons = true,
-  ]) {
+    CancelToken? cancelToken,
+    Duration timeout = const Duration(seconds: 30),
+  }) {
     throw UnimplementedError('getAppInfo() has not been implemented.');
   }
 
