@@ -5,9 +5,11 @@ import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityWindowInfo
 
 /**
  * AccessibilityService implementation for monitoring foreground app changes.
@@ -75,10 +77,14 @@ class AppMonitoringService : AccessibilityService() {
         
         // Configure the service programmatically (supplements XML config)
         val info = AccessibilityServiceInfo().apply {
-            eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+            eventTypes =
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
+                AccessibilityEvent.TYPE_WINDOWS_CHANGED
             feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
             notificationTimeout = 100
-            flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+            flags =
+                AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
+                AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
         }
         serviceInfo = info
         
@@ -89,12 +95,17 @@ class AppMonitoringService : AccessibilityService() {
         if (event == null || !isMonitoring) return
         
         // Only process window state change events
-        if (event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
+        if (
+            event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
+            event.eventType != AccessibilityEvent.TYPE_WINDOWS_CHANGED
+        ) return
         
-        val packageName = event.packageName?.toString() ?: return
-        
-        // Skip system UI and keyboards
-        if (shouldIgnorePackage(packageName)) return
+        // Prefer the focused interactive application window package if available.
+        // This avoids false positives where a background/PiP window emits an event
+        // (commonly observed with YouTube) while the launcher is actually focused.
+        val packageName = getFocusedApplicationPackageName()
+            ?: event.packageName?.toString()
+            ?: return
 
         val now = System.currentTimeMillis()
         if (now - lastEventTimestamp < EVENT_DEBOUNCE_MS) return
@@ -106,7 +117,29 @@ class AppMonitoringService : AccessibilityService() {
         lastForegroundPackage = packageName
         
         Log.d(TAG, "Foreground app changed: $packageName")
-        
+
+        val overlayManager = ShieldOverlayManager.getInstanceOrNull()
+
+        // If we navigated away from a restricted app, dismiss the shield.
+        // This is critical for cases where the user presses Home/Recents instead of tapping "OK".
+        if (packageName == applicationContext.packageName || isLauncherPackage(packageName)) {
+            overlayManager?.hideShield()
+            return
+        }
+
+        // Ignore transient window changes for system UI / keyboards without dismissing,
+        // otherwise the shield could flicker when notifications/IME appear.
+        if (isSystemUiOrImePackage(packageName)) return
+
+        // If the foreground app changed away from the currently blocked package, hide the shield.
+        // (e.g. user switches to another allowed app)
+        if (overlayManager?.isShowing() == true) {
+            val blocked = overlayManager.getCurrentBlockedPackage()
+            if (blocked != null && blocked != packageName) {
+                overlayManager.hideShield()
+            }
+        }
+
         // Check if this app is on the blocklist
         if (isAppRestricted(packageName)) {
             Log.d(TAG, "Restricted app detected: $packageName")
@@ -135,28 +168,33 @@ class AppMonitoringService : AccessibilityService() {
         isMonitoring = enabled
         Log.d(TAG, "Monitoring ${if (enabled) "enabled" else "disabled"}")
     }
-    
-    /**
-     * Checks if a package should be ignored (system UI, keyboards, etc.).
-     *
-     * @param packageName The package name to check
-     * @return true if the package should be ignored
-     */
-    private fun shouldIgnorePackage(packageName: String): Boolean {
-        val ownPackageName = applicationContext.packageName
-        if (packageName == ownPackageName) return true
 
-        val ignoredPackagePrefixes = listOf(
-            // System UI / launchers
-            "com.android.systemui",
+    private fun isLauncherPackage(packageName: String): Boolean {
+        // Common launcher packages across OEMs; plus a heuristic fallback.
+        val knownLaunchers = listOf(
             "com.android.launcher",
+            "com.android.launcher3",
             "com.google.android.apps.nexuslauncher",
-            // Keyboards / IMEs (common)
-            "com.google.android.inputmethod",
+            "com.google.android.apps.launcher",
+            "com.samsung.android.launcher",
+            "com.miui.home",
+            "com.oneplus.launcher",
+            "com.huawei.android.launcher",
+            "com.oppo.launcher",
+            "com.vivo.launcher",
+        )
+        return knownLaunchers.any { packageName.startsWith(it) } ||
+            packageName.contains("launcher", ignoreCase = true)
+    }
+
+    private fun isSystemUiOrImePackage(packageName: String): Boolean {
+        if (packageName.startsWith("com.android.systemui")) return true
+
+        val knownImes = listOf(
+            "com.google.android.inputmethod", // Gboard
             "com.samsung.android.honeyboard",
         )
-
-        return ignoredPackagePrefixes.any { packageName.startsWith(it) } ||
+        return knownImes.any { packageName.startsWith(it) } ||
             packageName.contains("keyboard", ignoreCase = true) ||
             packageName.contains("inputmethod", ignoreCase = true)
     }
@@ -169,6 +207,32 @@ class AppMonitoringService : AccessibilityService() {
      */
     private fun isAppRestricted(packageName: String): Boolean {
         return RestrictionManager.getInstance(applicationContext).isRestricted(packageName)
+    }
+
+    /**
+     * Attempts to resolve the "real" foreground app by reading interactive windows
+     * and picking the focused (or active) application window.
+     *
+     * This is more reliable than trusting `AccessibilityEvent.packageName`, which
+     * may refer to transient/non-focused windows (e.g. YouTube PiP/miniplayer).
+     */
+    private fun getFocusedApplicationPackageName(): String? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return null
+
+        return try {
+            val windowList = windows ?: return null
+
+            val focusedWindow = windowList.firstOrNull { w ->
+                w.type == AccessibilityWindowInfo.TYPE_APPLICATION && w.isFocused
+            } ?: windowList.firstOrNull { w ->
+                w.type == AccessibilityWindowInfo.TYPE_APPLICATION && w.isActive
+            }
+
+            focusedWindow?.root?.packageName?.toString()
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to resolve focused application window", e)
+            null
+        }
     }
     
     /**

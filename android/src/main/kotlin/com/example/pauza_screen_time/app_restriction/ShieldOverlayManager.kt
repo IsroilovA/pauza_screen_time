@@ -92,8 +92,14 @@ class ShieldOverlayManager private constructor(context: Context) {
      */
     fun showShield(packageId: String, contextOverride: Context? = null) {
         if (overlayView != null) {
-            Log.d(TAG, "Shield already showing")
-            return
+            // If we're already showing for the same package, no-op.
+            // If a different restricted app becomes foreground, update by recreating.
+            if (currentBlockedPackage == packageId) {
+                Log.d(TAG, "Shield already showing for: $packageId")
+                return
+            }
+            Log.d(TAG, "Shield showing for $currentBlockedPackage; switching to $packageId")
+            hideShield()
         }
 
         if (contextOverride != null) {
@@ -156,6 +162,11 @@ class ShieldOverlayManager private constructor(context: Context) {
      * @return true if overlay is showing
      */
     fun isShowing(): Boolean = overlayView != null
+
+    /**
+     * Gets the package name this shield is currently shown for, if any.
+     */
+    fun getCurrentBlockedPackage(): String? = currentBlockedPackage
 
     /**
      * Creates WindowManager.LayoutParams for the overlay window.
