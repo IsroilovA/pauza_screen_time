@@ -1,18 +1,72 @@
 # pauza_screen_time
 
-A new Flutter plugin project.
+Flutter plugin for **app usage monitoring**, **app restriction / blocking**, and **parental control** experiences.
 
-## Getting Started
+This package provides a single Dart API with platform-specific implementations:
+- **Android**: usage stats via `UsageStatsManager`, app blocking via **AccessibilityService** + **overlay shield**
+- **iOS**: app blocking via **Screen Time** (FamilyControls / ManagedSettings), usage reports via a native **DeviceActivityReport** platform view
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/to/develop-plugins),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+## Platform support
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+| Feature | Android | iOS |
+|---|---:|---:|
+| Permissions helpers | ✅ | ✅ (iOS 16+) |
+| Installed apps | ✅ enumerate | ✅ picker tokens only |
+| Restrict / block apps | ✅ (Accessibility + overlay) | ✅ (Screen Time, iOS 16+) |
+| Usage stats as data (`UsageStatsManager`) | ✅ | ❌ (throws `UnsupportedError`) |
+| Usage stats as UI (`UsageReportView`) | ❌ | ✅ (iOS 16+, requires report extension) |
 
-The plugin project was generated without specifying the `--platforms` flag, no platforms are currently supported.
-To add platforms, run `flutter create -t plugin --platforms <platforms> .` in this directory.
-You can also find a detailed instruction on how to add platforms in the `pubspec.yaml` at https://flutter.dev/to/pubspec-plugin-platforms.
+## Important limitations (read this first)
+
+- **iOS app enumeration is not available**. You must use the iOS picker and store opaque tokens.
+- **iOS usage stats cannot be read programmatically**. Apple only allows rendering usage via `DeviceActivityReport` UI.
+- **Android blocking requires user-enabled system settings** (Usage Access, Accessibility, Overlay).
+
+## Installation
+
+Add the dependency:
+
+```bash
+flutter pub add pauza_screen_time
+```
+
+Import it:
+
+```dart
+import 'package:pauza_screen_time/pauza_screen_time.dart';
+```
+
+## Quick start (minimal)
+
+```dart
+import 'package:pauza_screen_time/pauza_screen_time.dart';
+
+final permissions = PermissionManager();
+final installedApps = InstalledAppsManager();
+final restrictions = AppRestrictionManager();
+
+// Android: request required permissions and enable services in Settings.
+// iOS: request Screen Time authorization.
+//
+// Then:
+// - Android: restrict by package names, e.g. "com.whatsapp"
+// - iOS: restrict by base64 ApplicationToken strings from selectIOSApps()
+```
+
+## Documentation
+
+Start here:
+- [Getting started](docs/getting-started.md)
+
+Platform setup:
+- [Android setup](docs/android-setup.md)
+- [iOS setup](docs/ios-setup.md)
+
+Feature guides:
+- [Permissions](docs/permissions.md)
+- [Restrict / block apps](docs/restrict-apps.md)
+- [Installed apps](docs/installed-apps.md)
+- [Usage stats](docs/usage-stats.md)
+
+Help:
+- [Troubleshooting](docs/troubleshooting.md)

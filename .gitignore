@@ -32,6 +32,7 @@ migrate_working_dir/
 /build/
 /coverage/
 
-# Markdown files (except README.md)
+# Markdown files (except README.md and docs)
 *.md
 !README.md
+!docs/**/*.md

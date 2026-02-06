@@ -14,7 +14,9 @@ public class PauzaScreenTimePlugin: NSObject, FlutterPlugin {
         PermissionsRegistrar.register(with: registrar)
         InstalledAppsRegistrar.register(with: registrar)
         RestrictionsRegistrar.register(with: registrar)
-        UsageStatsRegistrar.register(with: registrar)
+        // Note: Usage stats method channel is not supported on iOS.
+        // Dart throws UnsupportedError before invoking native.
+        // However, the platform view for displaying usage reports IS supported.
 
         registrar.register(
             UsageReportViewFactory(messenger: registrar.messenger()),
