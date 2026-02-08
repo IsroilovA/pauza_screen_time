@@ -38,6 +38,25 @@ final app = await usage.getAppUsageStats(
 );
 ```
 
+### Android schema semantics
+
+Each `UsageStats` item includes:
+
+- `totalDuration` (`totalDurationMs`): total foreground time for the app.
+- `totalLaunchCount`: number of `ACTIVITY_RESUMED` events in the query window.
+- `bucketStart` (`bucketStartMs`): Android usage bucket start (`UsageStats.firstTimeStamp`).
+- `bucketEnd` (`bucketEndMs`): Android usage bucket end (`UsageStats.lastTimeStamp`).
+- `lastTimeUsed` (`lastTimeUsedMs`): last foreground usage time (`UsageStats.lastTimeUsed`).
+- `lastTimeVisible` (`lastTimeVisibleMs`): last visible time on Android Q+ (`UsageStats.lastTimeVisible`).
+
+Timestamps are sent as epoch milliseconds and deserialized to local `DateTime` values in Dart.
+They represent instants in time; local rendering depends on the device time zone.
+
+Notes:
+
+- `bucketStart` / `bucketEnd` are system bucket boundaries, not "first use" or "last use" in your query.
+- Some fields may be `null` depending on Android version, OEM behavior, or data availability.
+
 ## iOS: usage stats as UI (`UsageReportView`)
 
 ### Important limitation
@@ -74,4 +93,3 @@ DeviceActivityReport.Context(reportContextId)
 ```
 
 Your report extension must support the same context identifiers.
-

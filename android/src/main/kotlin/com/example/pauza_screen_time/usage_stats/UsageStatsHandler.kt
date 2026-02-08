@@ -212,10 +212,9 @@ class UsageStatsHandler(private val context: Context) {
                 "isSystemApp" to isSystemApp,
                 "totalDurationMs" to usageStats.totalTimeInForeground,
                 "totalLaunchCount" to launchCount,
-                "firstUsedMs" to if (usageStats.firstTimeStamp > 0) usageStats.firstTimeStamp else null,
-                "lastUsedMs" to if (usageStats.lastTimeStamp > 0) usageStats.lastTimeStamp else null,
-                "firstTimeStampMs" to if (usageStats.firstTimeStamp > 0) usageStats.firstTimeStamp else null,
-                "lastTimeStampMs" to if (usageStats.lastTimeStamp > 0) usageStats.lastTimeStamp else null
+                "bucketStartMs" to if (usageStats.firstTimeStamp > 0) usageStats.firstTimeStamp else null,
+                "bucketEndMs" to if (usageStats.lastTimeStamp > 0) usageStats.lastTimeStamp else null,
+                "lastTimeUsedMs" to if (usageStats.lastTimeUsed > 0) usageStats.lastTimeUsed else null
             )
 
             // Add Android Q+ specific field (lastTimeVisible)

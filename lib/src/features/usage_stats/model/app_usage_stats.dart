@@ -6,7 +6,7 @@ import 'package:pauza_screen_time/src/features/installed_apps/model/app_info.dar
 ///
 /// This model captures all data available from Android's UsageStats API,
 /// including app metadata (name, icon), usage duration, launch counts,
-/// and various timestamps that define the statistics bucket and visibility.
+/// and timestamps that define the statistics bucket and recency.
 @immutable
 class UsageStats {
   /// Information about the application (package name, label, icon).
@@ -18,19 +18,16 @@ class UsageStats {
   /// Total number of times the app was launched.
   final int totalLaunchCount;
 
-  /// Timestamp when the app was first used in the queried period.
-  final DateTime? firstUsed;
-
-  /// Timestamp when the app was last used in the queried period.
-  final DateTime? lastUsed;
-
   /// Start time of the statistics bucket (Android only).
   /// Represents when this UsageStats measurement period began.
-  final DateTime? firstTimeStamp;
+  final DateTime? bucketStart;
 
   /// End time of the statistics bucket (Android only).
   /// Represents when this UsageStats measurement period ended.
-  final DateTime? lastTimeStamp;
+  final DateTime? bucketEnd;
+
+  /// Timestamp when app was last used in foreground (Android only).
+  final DateTime? lastTimeUsed;
 
   /// Timestamp when app was last visible (Android Q+ only).
   /// This tracks when the app was last visible, even if not in foreground/focused.
@@ -40,10 +37,9 @@ class UsageStats {
     required this.appInfo,
     required this.totalDuration,
     required this.totalLaunchCount,
-    this.firstUsed,
-    this.lastUsed,
-    this.firstTimeStamp,
-    this.lastTimeStamp,
+    this.bucketStart,
+    this.bucketEnd,
+    this.lastTimeUsed,
     this.lastTimeVisible,
   });
 
@@ -66,17 +62,18 @@ class UsageStats {
       ),
       totalDuration: Duration(milliseconds: map['totalDurationMs'] as int),
       totalLaunchCount: map['totalLaunchCount'] as int,
-      firstUsed: map['firstUsedMs'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['firstUsedMs'] as int)
-          : null,
-      lastUsed: map['lastUsedMs'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['lastUsedMs'] as int)
-          : null,
-      firstTimeStamp: map['firstTimeStampMs'] != null
+      bucketStart: map['bucketStartMs'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['bucketStartMs'] as int)
+          : map['firstTimeStampMs'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['firstTimeStampMs'] as int)
           : null,
-      lastTimeStamp: map['lastTimeStampMs'] != null
+      bucketEnd: map['bucketEndMs'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['bucketEndMs'] as int)
+          : map['lastTimeStampMs'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['lastTimeStampMs'] as int)
+          : null,
+      lastTimeUsed: map['lastTimeUsedMs'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['lastTimeUsedMs'] as int)
           : null,
       lastTimeVisible: map['lastTimeVisibleMs'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['lastTimeVisibleMs'] as int)
@@ -91,13 +88,12 @@ class UsageStats {
       'appName': appInfo.name,
       'totalDurationMs': totalDuration.inMilliseconds,
       'totalLaunchCount': totalLaunchCount,
-      'firstUsedMs': firstUsed?.millisecondsSinceEpoch,
-      'lastUsedMs': lastUsed?.millisecondsSinceEpoch,
       'appIcon': appInfo.icon?.toList(),
       'category': appInfo.category,
       'isSystemApp': appInfo.isSystemApp,
-      'firstTimeStampMs': firstTimeStamp?.millisecondsSinceEpoch,
-      'lastTimeStampMs': lastTimeStamp?.millisecondsSinceEpoch,
+      'bucketStartMs': bucketStart?.millisecondsSinceEpoch,
+      'bucketEndMs': bucketEnd?.millisecondsSinceEpoch,
+      'lastTimeUsedMs': lastTimeUsed?.millisecondsSinceEpoch,
       'lastTimeVisibleMs': lastTimeVisible?.millisecondsSinceEpoch,
     };
   }

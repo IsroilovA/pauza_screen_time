@@ -1,3 +1,12 @@
+## 0.3.0
+
+* BREAKING: Android usage stats timestamp schema is now explicit:
+  * Removed ambiguous `firstUsed` / `lastUsed` fields from `UsageStats`.
+  * Renamed bucket timestamps to `bucketStart` / `bucketEnd`.
+  * Added `lastTimeUsed` mapped from Android `UsageStats.lastTimeUsed`.
+* Android native usage stats payload now emits `bucketStartMs`, `bucketEndMs`, `lastTimeUsedMs`, `lastTimeVisibleMs`.
+* `UsageStats.fromMap()` keeps backward compatibility for legacy `firstTimeStampMs` / `lastTimeStampMs` keys during deserialization.
+
 ## 0.2.0
 
 * BREAKING: `PermissionManager.requestAndroidPermission()` now returns `Future<void>` and opens Android Settings flows instead of returning a misleading grant boolean.
