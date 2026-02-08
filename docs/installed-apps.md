@@ -17,7 +17,7 @@ final apps = await installed.getAndroidInstalledApps(
 ```
 
 Each entry is an `AndroidAppInfo`:
-- `packageId` (use this with restrictions)
+- `packageId` (wrap with `AppIdentifier.android(packageId)` for restrictions)
 - `name`
 - `icon` (PNG bytes, optional)
 - `category` (optional)
@@ -39,6 +39,8 @@ iOS returns an opaque `ApplicationToken` representing the selected app. You cann
 Persist the token string yourself if you need to:
 - re-open the picker with a previous selection
 - re-apply restrictions on later app launches
+
+When applying restrictions, wrap token strings with `AppIdentifier.ios(token)`.
 
 ### Show picker
 
@@ -64,4 +66,3 @@ final picked = await installed.selectIOSApps(preSelectedApps: previouslyPicked);
 - [Restrict / block apps](restrict-apps.md)
 - [iOS setup](ios-setup.md)
 - [Troubleshooting](troubleshooting.md)
-

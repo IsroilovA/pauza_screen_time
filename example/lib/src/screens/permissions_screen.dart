@@ -9,10 +9,7 @@ import 'package:pauza_screen_time_example/src/widgets/permission_tile.dart';
 class PermissionsScreen extends StatefulWidget {
   final AppDependencies deps;
 
-  const PermissionsScreen({
-    super.key,
-    required this.deps,
-  });
+  const PermissionsScreen({super.key, required this.deps});
 
   @override
   State<PermissionsScreen> createState() => _PermissionsScreenState();
@@ -154,7 +151,10 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
 
   Future<void> _openOverlaySettings() async {
     try {
-      widget.deps.logController.info('permissions', 'Opening overlay settings...');
+      widget.deps.logController.info(
+        'permissions',
+        'Opening overlay settings...',
+      );
       // Try to open overlay settings using method channel
       // Fallback to app details if overlay settings intent fails
       try {

@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
+import 'package:pauza_screen_time/pauza_screen_time.dart';
 
-/// Controller for managing selected app package IDs.
-class SelectionController extends ValueNotifier<Set<String>> {
+/// Controller for managing selected app identifiers.
+class SelectionController extends ValueNotifier<Set<AppIdentifier>> {
   SelectionController() : super({});
 
-  void toggle(String id) {
-    final updated = Set<String>.from(value);
+  void toggle(AppIdentifier id) {
+    final updated = Set<AppIdentifier>.from(value);
     if (updated.contains(id)) {
       updated.remove(id);
     } else {
@@ -14,13 +15,13 @@ class SelectionController extends ValueNotifier<Set<String>> {
     value = updated;
   }
 
-  void setAll(Iterable<String> ids) {
-    value = Set<String>.from(ids);
+  void setAll(Iterable<AppIdentifier> ids) {
+    value = Set<AppIdentifier>.from(ids);
   }
 
   void clear() {
     value = {};
   }
 
-  bool isSelected(String id) => value.contains(id);
+  bool isSelected(AppIdentifier id) => value.contains(id);
 }

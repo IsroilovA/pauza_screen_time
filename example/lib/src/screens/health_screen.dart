@@ -9,10 +9,7 @@ import 'package:pauza_screen_time_example/src/state/health_state.dart';
 class HealthScreen extends StatefulWidget {
   final AppDependencies deps;
 
-  const HealthScreen({
-    super.key,
-    required this.deps,
-  });
+  const HealthScreen({super.key, required this.deps});
 
   @override
   State<HealthScreen> createState() => _HealthScreenState();
@@ -135,8 +132,8 @@ class _HealthScreenState extends State<HealthScreen> {
                     ElevatedButton.icon(
                       onPressed: () => widget.deps.permissionManager
                           .openAndroidPermissionSettings(
-                        AndroidPermission.usageStats,
-                      ),
+                            AndroidPermission.usageStats,
+                          ),
                       icon: const Icon(Icons.settings),
                       label: const Text('Usage Access'),
                       style: ElevatedButton.styleFrom(
@@ -146,8 +143,8 @@ class _HealthScreenState extends State<HealthScreen> {
                     ElevatedButton.icon(
                       onPressed: () => widget.deps.permissionManager
                           .openAndroidPermissionSettings(
-                        AndroidPermission.accessibility,
-                      ),
+                            AndroidPermission.accessibility,
+                          ),
                       icon: const Icon(Icons.settings),
                       label: const Text('Accessibility'),
                       style: ElevatedButton.styleFrom(
@@ -176,11 +173,7 @@ class _StatusRow extends StatelessWidget {
   final bool? isGranted;
   final String? value;
 
-  const _StatusRow({
-    required this.label,
-    this.isGranted,
-    this.value,
-  });
+  const _StatusRow({required this.label, this.isGranted, this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -211,10 +204,7 @@ class _StatusRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label),
-          trailing,
-        ],
+        children: [Text(label), trailing],
       ),
     );
   }

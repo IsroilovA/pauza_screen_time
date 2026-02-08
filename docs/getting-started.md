@@ -53,14 +53,17 @@ final installedApps = InstalledAppsManager();
 final restrictions = AppRestrictionManager();
 
 final apps = await installedApps.getAndroidInstalledApps(includeSystemApps: false);
-final packageIdsToBlock = apps.take(3).map((a) => a.packageId).toList();
+final identifiersToBlock = apps
+    .take(3)
+    .map((a) => AppIdentifier.android(a.packageId))
+    .toList();
 
 await restrictions.configureShield(const ShieldConfiguration(
   title: 'Time for a break',
   subtitle: 'This app is blocked right now.',
 ));
 
-await restrictions.restrictApps(packageIdsToBlock);
+await restrictions.restrictApps(identifiersToBlock);
 ```
 
 3) Read usage stats as data (Android only):
@@ -95,7 +98,9 @@ final installedApps = InstalledAppsManager();
 final restrictions = AppRestrictionManager();
 
 final picked = await installedApps.selectIOSApps();
-final tokens = picked.map((a) => a.applicationToken).toList();
+final identifiers = picked
+    .map((a) => AppIdentifier.ios(a.applicationToken))
+    .toList();
 
 await restrictions.configureShield(const ShieldConfiguration(
   // Optional but recommended when using extensions.
@@ -105,7 +110,7 @@ await restrictions.configureShield(const ShieldConfiguration(
   subtitle: 'Ask a parent for more time.',
 ));
 
-await restrictions.restrictApps(tokens);
+await restrictions.restrictApps(identifiers);
 ```
 
 3) Show usage reports as UI (iOS only):
@@ -127,4 +132,3 @@ This requires the **Device Activity Report extension** in the host iOS app. See 
 - [Installed apps](installed-apps.md)
 - [Usage stats](usage-stats.md)
 - [Troubleshooting](troubleshooting.md)
-

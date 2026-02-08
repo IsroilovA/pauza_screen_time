@@ -179,9 +179,12 @@ class BackgroundChannelRunner {
           ),
         );
       } else {
-        final error = message['error'] as String? ?? 'Unknown background isolate error';
+        final error =
+            message['error'] as String? ?? 'Unknown background isolate error';
         final stack = message['stack'] as String?;
-        request.completeError(StateError(stack == null ? error : '$error\n$stack'));
+        request.completeError(
+          StateError(stack == null ? error : '$error\n$stack'),
+        );
       }
     }
 
@@ -359,7 +362,11 @@ class _IsolateWorker {
 
     final isolate = await Isolate.spawn<_WorkerInitMessage>(
       _backgroundInvokeEntry,
-      _WorkerInitMessage(readyTo: readyPort.sendPort, replyTo: responsePort.sendPort, token: token),
+      _WorkerInitMessage(
+        readyTo: readyPort.sendPort,
+        replyTo: responsePort.sendPort,
+        token: token,
+      ),
       onExit: exitPort.sendPort,
     );
 
@@ -368,7 +375,13 @@ class _IsolateWorker {
 
     final subscription = responsePort.listen(onResponse);
 
-    return _IsolateWorker._(isolate, requestPort, responsePort, subscription, exitPort);
+    return _IsolateWorker._(
+      isolate,
+      requestPort,
+      responsePort,
+      subscription,
+      exitPort,
+    );
   }
 
   void sendRequest(Map<String, Object?> message) {
@@ -392,7 +405,11 @@ class _WorkerInitMessage {
   final SendPort replyTo;
   final RootIsolateToken token;
 
-  const _WorkerInitMessage({required this.readyTo, required this.replyTo, required this.token});
+  const _WorkerInitMessage({
+    required this.readyTo,
+    required this.replyTo,
+    required this.token,
+  });
 }
 
 Future<void> _backgroundInvokeEntry(_WorkerInitMessage init) async {
@@ -420,7 +437,11 @@ Future<void> _backgroundInvokeEntry(_WorkerInitMessage init) async {
     try {
       final channel = MethodChannel(channelName);
       final result = await channel.invokeMethod<dynamic>(method, arguments);
-      init.replyTo.send(<String, Object?>{'id': id, 'ok': true, 'result': _toSendable(result)});
+      init.replyTo.send(<String, Object?>{
+        'id': id,
+        'ok': true,
+        'result': _toSendable(result),
+      });
     } on PlatformException catch (e, st) {
       init.replyTo.send(<String, Object?>{
         'id': id,

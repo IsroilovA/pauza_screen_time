@@ -12,8 +12,8 @@ enum PluginErrorCode {
 
 enum PluginErrorMessage {
     static let missingPermissionKey = "Missing or invalid 'permissionKey' argument"
-    static let missingPackageIds = "Missing or invalid 'packageIds' argument"
-    static let missingPackageId = "Missing or invalid 'packageId' argument"
+    static let missingIdentifiers = "Missing or invalid 'identifiers' argument"
+    static let missingIdentifier = "Missing or invalid 'identifier' argument"
     static let missingShieldConfiguration = "Missing or invalid shield configuration"
     static let unableToDecodeToken = "Unable to decode application token"
     static let unableToDecodeTokens = "Unable to decode application token(s)"

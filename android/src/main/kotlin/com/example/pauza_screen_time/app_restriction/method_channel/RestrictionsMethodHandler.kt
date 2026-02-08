@@ -64,9 +64,9 @@ class RestrictionsMethodHandler(
         }
 
         val args = call.arguments
-        val packageIds: List<String>? = when (args) {
+        val identifiers: List<String>? = when (args) {
             is Map<*, *> -> {
-                val raw = args["packageIds"]
+                val raw = args["identifiers"]
                 if (raw is List<*>) {
                     val list = raw.filterIsInstance<String>()
                     if (list.size == raw.size) list else null
@@ -81,22 +81,22 @@ class RestrictionsMethodHandler(
             else -> null
         }
 
-        if (packageIds == null) {
-            PluginErrorHelper.invalidArgument(result, "Missing or invalid 'packageIds' argument")
+        if (identifiers == null) {
+            PluginErrorHelper.invalidArgument(result, "Missing or invalid 'identifiers' argument")
             return
         }
 
         try {
-            val trimmed = packageIds.map { it.trim() }
+            val trimmed = identifiers.map { it.trim() }
             val hasBlank = trimmed.any { it.isBlank() }
             if (hasBlank) {
-                PluginErrorHelper.invalidArgument(result, "Package IDs must be non-blank strings")
+                PluginErrorHelper.invalidArgument(result, "Identifiers must be non-blank strings")
                 return
             }
 
             val applied = LinkedHashSet<String>()
-            for (packageId in trimmed) {
-                applied.add(packageId)
+            for (identifier in trimmed) {
+                applied.add(identifier)
             }
             val appliedList = applied.toList()
 
@@ -119,14 +119,14 @@ class RestrictionsMethodHandler(
             return
         }
 
-        val packageId = call.argument<String>("packageId")
-        if (packageId == null) {
-            PluginErrorHelper.invalidArgument(result, "Missing or invalid 'packageId' argument")
+        val identifier = call.argument<String>("identifier")
+        if (identifier == null) {
+            PluginErrorHelper.invalidArgument(result, "Missing or invalid 'identifier' argument")
             return
         }
 
         try {
-            val added = RestrictionManager.getInstance(context).addRestrictedApp(packageId)
+            val added = RestrictionManager.getInstance(context).addRestrictedApp(identifier)
             result.success(added)
         } catch (e: Exception) {
             PluginErrorHelper.error(
@@ -145,14 +145,14 @@ class RestrictionsMethodHandler(
             return
         }
 
-        val packageId = call.argument<String>("packageId")
-        if (packageId == null) {
-            PluginErrorHelper.invalidArgument(result, "Missing or invalid 'packageId' argument")
+        val identifier = call.argument<String>("identifier")
+        if (identifier == null) {
+            PluginErrorHelper.invalidArgument(result, "Missing or invalid 'identifier' argument")
             return
         }
 
         try {
-            val removed = RestrictionManager.getInstance(context).removeRestriction(packageId)
+            val removed = RestrictionManager.getInstance(context).removeRestriction(identifier)
             result.success(removed)
         } catch (e: Exception) {
             PluginErrorHelper.error(
@@ -211,14 +211,14 @@ class RestrictionsMethodHandler(
             return
         }
 
-        val packageId = call.argument<String>("packageId")
-        if (packageId == null) {
-            PluginErrorHelper.invalidArgument(result, "Missing or invalid 'packageId' argument")
+        val identifier = call.argument<String>("identifier")
+        if (identifier == null) {
+            PluginErrorHelper.invalidArgument(result, "Missing or invalid 'identifier' argument")
             return
         }
 
         try {
-            val isRestricted = RestrictionManager.getInstance(context).isRestricted(packageId)
+            val isRestricted = RestrictionManager.getInstance(context).isRestricted(identifier)
             result.success(isRestricted)
         } catch (e: Exception) {
             PluginErrorHelper.error(

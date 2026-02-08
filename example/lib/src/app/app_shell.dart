@@ -58,7 +58,11 @@ class _AppShellState extends State<AppShell> {
       appBar: AppBar(
         title: const Text('Pauza Screen Time Showcase'),
         actions: [
-          IconButton(icon: const Icon(Icons.list), onPressed: _showLogSheet, tooltip: 'View Logs'),
+          IconButton(
+            icon: const Icon(Icons.list),
+            onPressed: _showLogSheet,
+            tooltip: 'View Logs',
+          ),
         ],
       ),
       body: IndexedStack(
@@ -79,8 +83,14 @@ class _AppShellState extends State<AppShell> {
           });
         },
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.health_and_safety), label: 'Health'),
-          NavigationDestination(icon: Icon(Icons.security), label: 'Permissions'),
+          NavigationDestination(
+            icon: Icon(Icons.health_and_safety),
+            label: 'Health',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.security),
+            label: 'Permissions',
+          ),
           NavigationDestination(icon: Icon(Icons.apps), label: 'Apps'),
           NavigationDestination(icon: Icon(Icons.bar_chart), label: 'Usage'),
           NavigationDestination(icon: Icon(Icons.block), label: 'Restrict'),

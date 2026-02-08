@@ -22,7 +22,8 @@ class AppListTile extends StatelessWidget {
               app.icon!,
               width: 48,
               height: 48,
-              errorBuilder: (context, error, stackTrace) => const Icon(Icons.apps),
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.apps),
             )
           : const Icon(Icons.apps),
       title: Text(app.name),
@@ -32,10 +33,7 @@ class AppListTile extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      trailing: Checkbox(
-        value: isSelected,
-        onChanged: (_) => onTap(),
-      ),
+      trailing: Checkbox(value: isSelected, onChanged: (_) => onTap()),
       onTap: onTap,
     );
   }

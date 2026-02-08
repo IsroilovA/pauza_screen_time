@@ -9,10 +9,7 @@ import 'package:pauza_screen_time_example/src/widgets/app_list_tile.dart';
 class AppsScreen extends StatefulWidget {
   final AppDependencies deps;
 
-  const AppsScreen({
-    super.key,
-    required this.deps,
-  });
+  const AppsScreen({super.key, required this.deps});
 
   @override
   State<AppsScreen> createState() => _AppsScreenState();
@@ -25,6 +22,9 @@ class _AppsScreenState extends State<AppsScreen> {
   bool _includeSystemApps = false;
   bool _includeIcons = true;
   final TextEditingController _searchController = TextEditingController();
+
+  AppIdentifier _androidIdentifier(AndroidAppInfo app) =>
+      AppIdentifier.android(app.packageId);
 
   @override
   void initState() {
@@ -45,9 +45,11 @@ class _AppsScreenState extends State<AppsScreen> {
         _filteredApps = List.from(_allApps);
       } else {
         _filteredApps = _allApps
-            .where((app) =>
-                app.name.toLowerCase().contains(query) ||
-                app.packageId.toLowerCase().contains(query))
+            .where(
+              (app) =>
+                  app.name.toLowerCase().contains(query) ||
+                  app.packageId.toLowerCase().contains(query),
+            )
             .toList();
       }
     });
@@ -72,15 +74,13 @@ class _AppsScreenState extends State<AppsScreen> {
         'Loading apps (system: $_includeSystemApps, icons: $_includeIcons)...',
       );
 
-      final apps = await widget.deps.installedAppsManager.getAndroidInstalledApps(
-        includeSystemApps: _includeSystemApps,
-        includeIcons: _includeIcons,
-      );
+      final apps = await widget.deps.installedAppsManager
+          .getAndroidInstalledApps(
+            includeSystemApps: _includeSystemApps,
+            includeIcons: _includeIcons,
+          );
 
-      widget.deps.logController.info(
-        'apps',
-        'Loaded ${apps.length} apps',
-      );
+      widget.deps.logController.info('apps', 'Loaded ${apps.length} apps');
 
       setState(() {
         _allApps = apps;
@@ -90,9 +90,9 @@ class _AppsScreenState extends State<AppsScreen> {
     } catch (e, st) {
       widget.deps.logController.error('apps', 'Failed to load apps', e, st);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     } finally {
       setState(() {
@@ -178,17 +178,14 @@ class _AppsScreenState extends State<AppsScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                ValueListenableBuilder<Set<String>>(
+                ValueListenableBuilder<Set<AppIdentifier>>(
                   valueListenable: widget.deps.selectionController,
                   builder: (context, selected, _) {
                     return Text(
                       'Loaded: ${_allApps.length} | '
                       'Filtered: ${_filteredApps.length} | '
                       'Selected: ${selected.length}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     );
                   },
                 ),
@@ -199,40 +196,42 @@ class _AppsScreenState extends State<AppsScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _filteredApps.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.apps, size: 64, color: Colors.grey),
-                            const SizedBox(height: 16),
-                            Text(
-                              _allApps.isEmpty
-                                  ? 'Tap "Load Apps" to get started'
-                                  : 'No apps match your search',
-                              style: const TextStyle(color: Colors.grey),
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.apps, size: 64, color: Colors.grey),
+                        const SizedBox(height: 16),
+                        Text(
+                          _allApps.isEmpty
+                              ? 'Tap "Load Apps" to get started'
+                              : 'No apps match your search',
+                          style: const TextStyle(color: Colors.grey),
                         ),
-                      )
-                    : ValueListenableBuilder<Set<String>>(
-                        valueListenable: widget.deps.selectionController,
-                        builder: (context, selected, _) {
-                          return ListView.builder(
-                            itemCount: _filteredApps.length,
-                            itemBuilder: (context, index) {
-                              final app = _filteredApps[index];
-                              return AppListTile(
-                                app: app,
-                                isSelected: selected.contains(app.packageId),
-                                onTap: () {
-                                  widget.deps.selectionController
-                                      .toggle(app.packageId);
-                                },
+                      ],
+                    ),
+                  )
+                : ValueListenableBuilder<Set<AppIdentifier>>(
+                    valueListenable: widget.deps.selectionController,
+                    builder: (context, selected, _) {
+                      return ListView.builder(
+                        itemCount: _filteredApps.length,
+                        itemBuilder: (context, index) {
+                          final app = _filteredApps[index];
+                          final identifier = _androidIdentifier(app);
+                          return AppListTile(
+                            app: app,
+                            isSelected: selected.contains(identifier),
+                            onTap: () {
+                              widget.deps.selectionController.toggle(
+                                identifier,
                               );
                             },
                           );
                         },
-                      ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

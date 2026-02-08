@@ -48,16 +48,16 @@ See [iOS setup](ios-setup.md).
 final restrictions = AppRestrictionManager();
 
 await restrictions.restrictApps([
-  'com.whatsapp',
-  'com.instagram.android',
+  AppIdentifier.android('com.whatsapp'),
+  AppIdentifier.android('com.instagram.android'),
 ]);
 ```
 
 To add/remove one at a time:
 
 ```dart
-await restrictions.restrictApp('com.whatsapp');
-await restrictions.unrestrictApp('com.whatsapp');
+await restrictions.restrictApp(AppIdentifier.android('com.whatsapp'));
+await restrictions.unrestrictApp(AppIdentifier.android('com.whatsapp'));
 ```
 
 ## 3) Restrict apps (iOS)
@@ -75,14 +75,16 @@ await permissions.requestIOSPermission(IOSPermission.familyControls);
 final installedApps = InstalledAppsManager();
 final picked = await installedApps.selectIOSApps();
 
-final tokens = picked.map((a) => a.applicationToken).toList();
+final identifiers = picked
+    .map((a) => AppIdentifier.ios(a.applicationToken))
+    .toList();
 ```
 
 ### Step C: apply restrictions using tokens
 
 ```dart
 final restrictions = AppRestrictionManager();
-await restrictions.restrictApps(tokens);
+await restrictions.restrictApps(identifiers);
 ```
 
 ## 4) Query current restrictions
@@ -111,4 +113,3 @@ final isBlocked = await restrictions.isAppRestricted(current.first);
 - [Installed apps](installed-apps.md)
 - [Permissions](permissions.md)
 - [Troubleshooting](troubleshooting.md)
-

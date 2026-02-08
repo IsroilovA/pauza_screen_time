@@ -7,10 +7,7 @@ import '../log/in_app_log.dart';
 class LogSheet extends StatelessWidget {
   final InAppLogController logController;
 
-  const LogSheet({
-    super.key,
-    required this.logController,
-  });
+  const LogSheet({super.key, required this.logController});
 
   @override
   Widget build(BuildContext context) {
@@ -28,20 +25,21 @@ class LogSheet extends StatelessWidget {
                 children: [
                   const Text(
                     'In-App Logs',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   Row(
                     children: [
                       if (entries.isNotEmpty)
                         TextButton.icon(
                           onPressed: () {
-                            final text = entries.map((e) => e.toString()).join('\n');
+                            final text = entries
+                                .map((e) => e.toString())
+                                .join('\n');
                             Clipboard.setData(ClipboardData(text: text));
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Logs copied to clipboard')),
+                              const SnackBar(
+                                content: Text('Logs copied to clipboard'),
+                              ),
                             );
                           },
                           icon: const Icon(Icons.copy, size: 18),

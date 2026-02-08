@@ -8,10 +8,7 @@ import 'package:pauza_screen_time_example/src/app/dependencies.dart';
 class RestrictScreen extends StatefulWidget {
   final AppDependencies deps;
 
-  const RestrictScreen({
-    super.key,
-    required this.deps,
-  });
+  const RestrictScreen({super.key, required this.deps});
 
   @override
   State<RestrictScreen> createState() => _RestrictScreenState();
@@ -23,7 +20,7 @@ class _RestrictScreenState extends State<RestrictScreen> {
     text: 'This app is currently restricted',
   );
   final _buttonLabelController = TextEditingController(text: 'OK');
-  List<String> _restrictedApps = [];
+  List<AppIdentifier> _restrictedApps = [];
   bool _isLoading = false;
 
   @override
@@ -76,12 +73,15 @@ class _RestrictScreenState extends State<RestrictScreen> {
 
       await widget.deps.appRestrictionManager.configureShield(config);
 
-      widget.deps.logController.info('restrict', 'Shield configured successfully');
+      widget.deps.logController.info(
+        'restrict',
+        'Shield configured successfully',
+      );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Shield configured')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Shield configured')));
       }
     } catch (e, st) {
       widget.deps.logController.error(
@@ -91,9 +91,9 @@ class _RestrictScreenState extends State<RestrictScreen> {
         st,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     }
   }
@@ -123,21 +123,20 @@ class _RestrictScreenState extends State<RestrictScreen> {
         'Restricting ${selected.length} apps...',
       );
 
-      final applied = await widget.deps.appRestrictionManager
-          .restrictApps(selected.toList());
+      final applied = await widget.deps.appRestrictionManager.restrictApps(
+        selected.toList(),
+      );
 
       widget.deps.logController.info(
         'restrict',
-        'Successfully restricted ${applied.length} apps: ${applied.take(3).join(", ")}${applied.length > 3 ? "..." : ""}',
+        'Successfully restricted ${applied.length} apps: ${applied.take(3).map((identifier) => identifier.value).join(", ")}${applied.length > 3 ? "..." : ""}',
       );
 
       await _loadRestrictedApps();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Restricted ${applied.length} app(s)'),
-          ),
+          SnackBar(content: Text('Restricted ${applied.length} app(s)')),
         );
       }
     } catch (e, st) {
@@ -148,9 +147,9 @@ class _RestrictScreenState extends State<RestrictScreen> {
         st,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     } finally {
       setState(() {
@@ -159,31 +158,32 @@ class _RestrictScreenState extends State<RestrictScreen> {
     }
   }
 
-  Future<void> _unrestrictApp(String packageId) async {
+  Future<void> _unrestrictApp(AppIdentifier identifier) async {
     try {
       widget.deps.logController.info(
         'restrict',
-        'Unrestricting app: $packageId',
+        'Unrestricting app: ${identifier.value}',
       );
 
-      final changed = await widget.deps.appRestrictionManager
-          .unrestrictApp(packageId);
+      final changed = await widget.deps.appRestrictionManager.unrestrictApp(
+        identifier,
+      );
 
       if (changed) {
         widget.deps.logController.info(
           'restrict',
-          'Successfully unrestricted: $packageId',
+          'Successfully unrestricted: ${identifier.value}',
         );
         await _loadRestrictedApps();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('App unrestricted')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('App unrestricted')));
         }
       } else {
         widget.deps.logController.warn(
           'restrict',
-          'Unrestrict was a no-op: $packageId',
+          'Unrestrict was a no-op: ${identifier.value}',
         );
       }
     } catch (e, st) {
@@ -194,16 +194,19 @@ class _RestrictScreenState extends State<RestrictScreen> {
         st,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     }
   }
 
   Future<void> _clearAll() async {
     try {
-      widget.deps.logController.info('restrict', 'Clearing all restrictions...');
+      widget.deps.logController.info(
+        'restrict',
+        'Clearing all restrictions...',
+      );
 
       await widget.deps.appRestrictionManager.clearAllRestrictions();
 
@@ -224,9 +227,9 @@ class _RestrictScreenState extends State<RestrictScreen> {
         st,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     }
   }
@@ -327,7 +330,9 @@ class _RestrictScreenState extends State<RestrictScreen> {
                     const SizedBox(height: 8),
                     FutureBuilder<PermissionStatus>(
                       future: widget.deps.permissionManager
-                          .checkAndroidPermission(AndroidPermission.accessibility),
+                          .checkAndroidPermission(
+                            AndroidPermission.accessibility,
+                          ),
                       builder: (context, snapshot) {
                         final accessibilityGranted =
                             snapshot.data?.isGranted ?? false;
@@ -357,7 +362,7 @@ class _RestrictScreenState extends State<RestrictScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            ValueListenableBuilder<Set<String>>(
+            ValueListenableBuilder<Set<AppIdentifier>>(
               valueListenable: widget.deps.selectionController,
               builder: (context, selected, _) {
                 return ElevatedButton.icon(
@@ -371,9 +376,7 @@ class _RestrictScreenState extends State<RestrictScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.block),
-                  label: Text(
-                    'Restrict Selected (${selected.length})',
-                  ),
+                  label: Text('Restrict Selected (${selected.length})'),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 48),
                     backgroundColor: Colors.red[100],
@@ -404,20 +407,17 @@ class _RestrictScreenState extends State<RestrictScreen> {
             if (_restrictedApps.isNotEmpty) ...[
               const Text(
                 'Currently Restricted Apps',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               ..._restrictedApps.map(
-                (packageId) => Card(
+                (identifier) => Card(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
-                    title: Text(packageId),
+                    title: Text(identifier.value),
                     trailing: IconButton(
                       icon: const Icon(Icons.close),
-                      onPressed: () => _unrestrictApp(packageId),
+                      onPressed: () => _unrestrictApp(identifier),
                       tooltip: 'Unrestrict',
                     ),
                   ),
@@ -435,10 +435,7 @@ class _ChecklistItem extends StatelessWidget {
   final String label;
   final bool? isChecked;
 
-  const _ChecklistItem({
-    required this.label,
-    this.isChecked,
-  });
+  const _ChecklistItem({required this.label, this.isChecked});
 
   @override
   Widget build(BuildContext context) {

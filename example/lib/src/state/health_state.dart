@@ -8,7 +8,7 @@ import '../log/in_app_log.dart';
 /// Snapshot of health status.
 class HealthSnapshot {
   final Map<AndroidPermission, PermissionStatus> permissionStatuses;
-  final List<String> restrictedIds;
+  final List<AppIdentifier> restrictedIds;
   final DateTime updatedAt;
 
   HealthSnapshot({
@@ -26,7 +26,8 @@ class HealthSnapshot {
       permissionStatuses[AndroidPermission.accessibility]?.isGranted ?? false;
 
   bool get isQueryAllPackagesGranted =>
-      permissionStatuses[AndroidPermission.queryAllPackages]?.isGranted ?? false;
+      permissionStatuses[AndroidPermission.queryAllPackages]?.isGranted ??
+      false;
 }
 
 /// Controller for managing health status.
@@ -56,7 +57,9 @@ class HealthController extends ValueNotifier<HealthSnapshot?> {
         AndroidPermission.accessibility,
         AndroidPermission.queryAllPackages,
       ];
-      final statuses = await permissionManager.checkAndroidPermissions(permissions);
+      final statuses = await permissionManager.checkAndroidPermissions(
+        permissions,
+      );
 
       // Get restricted apps
       final restrictedIds = await restrictionManager.getRestrictedApps();
@@ -70,8 +73,8 @@ class HealthController extends ValueNotifier<HealthSnapshot?> {
       logController.info(
         'health',
         'Health refreshed: ${restrictedIds.length} restricted apps, '
-        'Usage Access: ${statuses[AndroidPermission.usageStats]?.isGranted ?? false}, '
-        'Accessibility: ${statuses[AndroidPermission.accessibility]?.isGranted ?? false}',
+            'Usage Access: ${statuses[AndroidPermission.usageStats]?.isGranted ?? false}, '
+            'Accessibility: ${statuses[AndroidPermission.accessibility]?.isGranted ?? false}',
       );
     } catch (e, st) {
       logController.error('health', 'Failed to refresh health status', e, st);

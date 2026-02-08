@@ -1,3 +1,4 @@
+import 'package:pauza_screen_time/src/core/app_identifier.dart';
 import 'package:pauza_screen_time/src/features/restrict_apps/app_restriction_platform.dart';
 import 'package:pauza_screen_time/src/features/restrict_apps/method_channel/restrictions_method_channel.dart';
 import 'package:pauza_screen_time/src/features/restrict_apps/model/shield_configuration.dart';
@@ -25,34 +26,34 @@ class AppRestrictionManager {
   // Restriction Management
   // ============================================================
 
-  /// Restricts the specified apps by their package IDs.
+  /// Restricts the specified apps by opaque identifiers.
   ///
   /// When a restricted app is launched, the configured shield will be displayed.
   ///
   /// Returns the list of identifiers that were successfully applied on the
   /// native side (deduplicated, input-order-preserving).
   ///
-  /// [packageIds] - List of identifiers:
+  /// [identifiers] - List of identifiers:
   /// - Android: package names.
   /// - iOS: base64 `ApplicationToken` strings (from FamilyActivityPicker).
-  Future<List<String>> restrictApps(List<String> packageIds) {
-    return _platform.setRestrictedApps(packageIds);
+  Future<List<AppIdentifier>> restrictApps(List<AppIdentifier> identifiers) {
+    return _platform.setRestrictedApps(identifiers);
   }
 
   /// Restricts a single app.
   ///
   /// Returns `true` if the restricted set changed, `false` if it was a no-op.
-  Future<bool> restrictApp(String packageId) {
-    return _platform.addRestrictedApp(packageId);
+  Future<bool> restrictApp(AppIdentifier identifier) {
+    return _platform.addRestrictedApp(identifier);
   }
 
   /// Removes restriction from a specific app.
   ///
-  /// [packageId] - Package identifier of the app to unblock.
+  /// [identifier] - Opaque identifier of the app to unblock.
   ///
   /// Returns `true` if the restricted set changed, `false` if it was a no-op.
-  Future<bool> unrestrictApp(String packageId) {
-    return _platform.removeRestriction(packageId);
+  Future<bool> unrestrictApp(AppIdentifier identifier) {
+    return _platform.removeRestriction(identifier);
   }
 
   /// Removes all app restrictions.
@@ -60,13 +61,13 @@ class AppRestrictionManager {
     return _platform.removeAllRestrictions();
   }
 
-  /// Returns the list of currently restricted package IDs.
-  Future<List<String>> getRestrictedApps() {
+  /// Returns the list of currently restricted app identifiers.
+  Future<List<AppIdentifier>> getRestrictedApps() {
     return _platform.getRestrictedApps();
   }
 
   /// Checks if a specific app is currently restricted.
-  Future<bool> isAppRestricted(String packageId) {
-    return _platform.isRestricted(packageId);
+  Future<bool> isAppRestricted(AppIdentifier identifier) {
+    return _platform.isRestricted(identifier);
   }
 }

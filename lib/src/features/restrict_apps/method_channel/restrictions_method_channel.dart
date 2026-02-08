@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'package:pauza_screen_time/src/core/app_identifier.dart';
 import 'package:pauza_screen_time/src/features/restrict_apps/app_restriction_platform.dart';
 import 'package:pauza_screen_time/src/features/restrict_apps/method_channel/channel_name.dart';
 import 'package:pauza_screen_time/src/features/restrict_apps/method_channel/method_names.dart';
@@ -22,38 +23,44 @@ class RestrictionsMethodChannel extends AppRestrictionPlatform {
   }
 
   @override
-  Future<List<String>> setRestrictedApps(List<String> packageIds) async {
+  Future<List<AppIdentifier>> setRestrictedApps(
+    List<AppIdentifier> identifiers,
+  ) async {
     final result = await channel.invokeMethod<List<dynamic>>(
       RestrictionsMethodNames.setRestrictedApps,
-      {'packageIds': packageIds},
+      {
+        'identifiers': identifiers
+            .map((identifier) => identifier.value)
+            .toList(),
+      },
     );
     if (result == null) return [];
-    return result.cast<String>();
+    return result.cast<String>().map(AppIdentifier.new).toList();
   }
 
   @override
-  Future<bool> addRestrictedApp(String packageId) async {
+  Future<bool> addRestrictedApp(AppIdentifier identifier) async {
     final result = await channel.invokeMethod<bool>(
       RestrictionsMethodNames.addRestrictedApp,
-      {'packageId': packageId},
+      {'identifier': identifier.value},
     );
     return result ?? false;
   }
 
   @override
-  Future<bool> removeRestriction(String packageId) async {
+  Future<bool> removeRestriction(AppIdentifier identifier) async {
     final result = await channel.invokeMethod<bool>(
       RestrictionsMethodNames.removeRestriction,
-      {'packageId': packageId},
+      {'identifier': identifier.value},
     );
     return result ?? false;
   }
 
   @override
-  Future<bool> isRestricted(String packageId) async {
+  Future<bool> isRestricted(AppIdentifier identifier) async {
     final result = await channel.invokeMethod<bool>(
       RestrictionsMethodNames.isRestricted,
-      {'packageId': packageId},
+      {'identifier': identifier.value},
     );
     return result ?? false;
   }
@@ -66,11 +73,11 @@ class RestrictionsMethodChannel extends AppRestrictionPlatform {
   }
 
   @override
-  Future<List<String>> getRestrictedApps() async {
+  Future<List<AppIdentifier>> getRestrictedApps() async {
     final result = await channel.invokeMethod<List<dynamic>>(
       RestrictionsMethodNames.getRestrictedApps,
     );
     if (result == null) return [];
-    return result.cast<String>();
+    return result.cast<String>().map(AppIdentifier.new).toList();
   }
 }

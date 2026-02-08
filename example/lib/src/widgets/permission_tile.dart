@@ -56,7 +56,10 @@ class PermissionTile extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         permission.description,
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
@@ -118,8 +121,13 @@ class PermissionTile extends StatelessWidget {
 
   Future<void> _handleRequest(BuildContext context) async {
     try {
-      logController.info('permissions', 'Requesting ${permission.displayName}...');
-      final granted = await permissionManager.requestAndroidPermission(permission);
+      logController.info(
+        'permissions',
+        'Requesting ${permission.displayName}...',
+      );
+      final granted = await permissionManager.requestAndroidPermission(
+        permission,
+      );
       logController.info(
         'permissions',
         'Request result for ${permission.displayName}: ${granted ? "granted" : "denied"}',
@@ -145,18 +153,24 @@ class PermissionTile extends StatelessWidget {
         st,
       );
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     }
   }
 
   Future<void> _handleOpenSettings(BuildContext context) async {
     try {
-      logController.info('permissions', 'Opening settings for ${permission.displayName}...');
+      logController.info(
+        'permissions',
+        'Opening settings for ${permission.displayName}...',
+      );
       await permissionManager.openAndroidPermissionSettings(permission);
-      logController.info('permissions', 'Settings opened for ${permission.displayName}');
+      logController.info(
+        'permissions',
+        'Settings opened for ${permission.displayName}',
+      );
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -176,16 +190,19 @@ class PermissionTile extends StatelessWidget {
         st,
       );
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     }
   }
 
   Future<void> _handleCheck(BuildContext context) async {
     try {
-      logController.info('permissions', 'Checking ${permission.displayName}...');
+      logController.info(
+        'permissions',
+        'Checking ${permission.displayName}...',
+      );
       final status = await permissionManager.checkAndroidPermission(permission);
       logController.info(
         'permissions',
@@ -208,9 +225,9 @@ class PermissionTile extends StatelessWidget {
         st,
       );
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     }
   }

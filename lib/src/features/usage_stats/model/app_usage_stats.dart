@@ -53,8 +53,8 @@ class UsageStats {
     final icon = rawIcon is Uint8List
         ? rawIcon
         : rawIcon is List
-            ? Uint8List.fromList(List<int>.from(rawIcon))
-            : null;
+        ? Uint8List.fromList(List<int>.from(rawIcon))
+        : null;
 
     return UsageStats(
       appInfo: AndroidAppInfo(

@@ -61,8 +61,8 @@ final class RestrictionsMethodHandler {
             return
         }
         guard let args = call.arguments as? [String: Any],
-              let tokens = args["packageIds"] as? [String] else {
-            result(PluginErrors.invalidArguments(PluginErrorMessage.missingPackageIds))
+              let tokens = args["identifiers"] as? [String] else {
+            result(PluginErrors.invalidArguments(PluginErrorMessage.missingIdentifiers))
             return
         }
         let decodeResult = ShieldManager.shared.decodeTokens(base64Tokens: tokens)
@@ -84,8 +84,8 @@ final class RestrictionsMethodHandler {
             return
         }
         guard let args = call.arguments as? [String: Any],
-              let token = args["packageId"] as? String else {
-            result(PluginErrors.invalidArguments(PluginErrorMessage.missingPackageId))
+              let token = args["identifier"] as? String else {
+            result(PluginErrors.invalidArguments(PluginErrorMessage.missingIdentifier))
             return
         }
 
@@ -105,8 +105,8 @@ final class RestrictionsMethodHandler {
             return
         }
         guard let args = call.arguments as? [String: Any],
-              let token = args["packageId"] as? String else {
-            result(PluginErrors.invalidArguments(PluginErrorMessage.missingPackageId))
+              let token = args["identifier"] as? String else {
+            result(PluginErrors.invalidArguments(PluginErrorMessage.missingIdentifier))
             return
         }
         guard let changed = ShieldManager.shared.removeRestrictedApp(base64Token: token) else {
@@ -125,8 +125,8 @@ final class RestrictionsMethodHandler {
             return
         }
         guard let args = call.arguments as? [String: Any],
-              let token = args["packageId"] as? String else {
-            result(PluginErrors.invalidArguments(PluginErrorMessage.missingPackageId))
+              let token = args["identifier"] as? String else {
+            result(PluginErrors.invalidArguments(PluginErrorMessage.missingIdentifier))
             return
         }
 

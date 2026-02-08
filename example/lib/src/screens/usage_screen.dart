@@ -10,10 +10,7 @@ import 'package:pauza_screen_time_example/src/widgets/duration_format.dart';
 class UsageScreen extends StatefulWidget {
   final AppDependencies deps;
 
-  const UsageScreen({
-    super.key,
-    required this.deps,
-  });
+  const UsageScreen({super.key, required this.deps});
 
   @override
   State<UsageScreen> createState() => _UsageScreenState();
@@ -89,11 +86,16 @@ class _UsageScreenState extends State<UsageScreen> {
         _stats = stats;
       });
     } catch (e, st) {
-      widget.deps.logController.error('usage', 'Failed to query usage stats', e, st);
+      widget.deps.logController.error(
+        'usage',
+        'Failed to query usage stats',
+        e,
+        st,
+      );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     } finally {
       setState(() {
@@ -146,12 +148,14 @@ class _UsageScreenState extends State<UsageScreen> {
 
     // Check if Usage Access is granted
     return FutureBuilder<PermissionStatus>(
-      future: widget.deps.permissionManager
-          .checkAndroidPermission(AndroidPermission.usageStats),
+      future: widget.deps.permissionManager.checkAndroidPermission(
+        AndroidPermission.usageStats,
+      ),
       builder: (context, snapshot) {
         final hasPermission = snapshot.data?.isGranted ?? false;
 
-        if (!hasPermission && snapshot.connectionState == ConnectionState.done) {
+        if (!hasPermission &&
+            snapshot.connectionState == ConnectionState.done) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
@@ -173,8 +177,8 @@ class _UsageScreenState extends State<UsageScreen> {
                   ElevatedButton.icon(
                     onPressed: () => widget.deps.permissionManager
                         .openAndroidPermissionSettings(
-                      AndroidPermission.usageStats,
-                    ),
+                          AndroidPermission.usageStats,
+                        ),
                     icon: const Icon(Icons.settings),
                     label: const Text('Open Usage Access Settings'),
                   ),
@@ -214,7 +218,10 @@ class _UsageScreenState extends State<UsageScreen> {
                       const SizedBox(height: 8),
                       Text(
                         'Range: ${_formatDate(_startDate!)} - ${_formatDate(_endDate!)}',
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                     const SizedBox(height: 8),
@@ -239,72 +246,71 @@ class _UsageScreenState extends State<UsageScreen> {
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _stats.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.bar_chart,
-                                  size: 64,
-                                  color: Colors.grey,
-                                ),
-                                const SizedBox(height: 16),
-                                const Text(
-                                  'No usage data yet.\n'
-                                  'Query stats or use your device for a few minutes.',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              ],
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.bar_chart,
+                              size: 64,
+                              color: Colors.grey,
                             ),
-                          )
-                        : ListView.builder(
-                            itemCount: _stats.length,
-                            itemBuilder: (context, index) {
-                              final stat = _stats[index];
-                              return Card(
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 4,
-                                ),
-                                child: ListTile(
-                                  leading: stat.appInfo.icon != null
-                                      ? Image.memory(
-                                          stat.appInfo.icon!,
-                                          width: 48,
-                                          height: 48,
-                                          errorBuilder:
-                                              (context, error, stackTrace) =>
-                                                  const Icon(Icons.apps),
-                                        )
-                                      : const Icon(Icons.apps),
-                                  title: Text(stat.appInfo.name),
-                                  subtitle: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        stat.appInfo.packageId,
-                                        style: const TextStyle(fontSize: 11),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Launches: ${stat.totalLaunchCount}',
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                    ],
+                            const SizedBox(height: 16),
+                            const Text(
+                              'No usage data yet.\n'
+                              'Query stats or use your device for a few minutes.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: _stats.length,
+                        itemBuilder: (context, index) {
+                          final stat = _stats[index];
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 4,
+                            ),
+                            child: ListTile(
+                              leading: stat.appInfo.icon != null
+                                  ? Image.memory(
+                                      stat.appInfo.icon!,
+                                      width: 48,
+                                      height: 48,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const Icon(Icons.apps),
+                                    )
+                                  : const Icon(Icons.apps),
+                              title: Text(stat.appInfo.name),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    stat.appInfo.packageId,
+                                    style: const TextStyle(fontSize: 11),
                                   ),
-                                  trailing: Text(
-                                    formatDuration(stat.totalDuration),
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Launches: ${stat.totalLaunchCount}',
+                                    style: const TextStyle(fontSize: 12),
                                   ),
+                                ],
+                              ),
+                              trailing: Text(
+                                formatDuration(stat.totalDuration),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              );
-                            },
-                          ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
               ),
             ],
           ),

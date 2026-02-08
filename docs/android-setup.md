@@ -79,7 +79,6 @@ Google Play restricts use of `QUERY_ALL_PACKAGES`. If you don’t qualify, you m
 
 If blocking doesn’t work:
 - Confirm **Accessibility** is enabled (step 3)
-- Confirm you called `AppRestrictionManager.restrictApps()` with valid package names
+- Confirm you called `AppRestrictionManager.restrictApps()` with valid `AppIdentifier.android(packageId)` values
 
 See [Troubleshooting](troubleshooting.md) for more.
-

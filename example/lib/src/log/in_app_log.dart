@@ -20,7 +20,8 @@ class LogEntry {
 
   @override
   String toString() {
-    final timeStr = '${at.hour.toString().padLeft(2, '0')}:'
+    final timeStr =
+        '${at.hour.toString().padLeft(2, '0')}:'
         '${at.minute.toString().padLeft(2, '0')}:'
         '${at.second.toString().padLeft(2, '0')}';
     final levelStr = level.toUpperCase().padRight(5);
@@ -38,33 +39,39 @@ class InAppLogController extends ValueNotifier<List<LogEntry>> {
   InAppLogController() : super([]);
 
   void info(String tag, String message) {
-    _add(LogEntry(
-      at: DateTime.now(),
-      level: 'info',
-      tag: tag,
-      message: message,
-    ));
+    _add(
+      LogEntry(at: DateTime.now(), level: 'info', tag: tag, message: message),
+    );
   }
 
   void warn(String tag, String message, [Object? error]) {
-    _add(LogEntry(
-      at: DateTime.now(),
-      level: 'warn',
-      tag: tag,
-      message: message,
-      error: error,
-    ));
+    _add(
+      LogEntry(
+        at: DateTime.now(),
+        level: 'warn',
+        tag: tag,
+        message: message,
+        error: error,
+      ),
+    );
   }
 
-  void error(String tag, String message, [Object? error, StackTrace? stackTrace]) {
-    _add(LogEntry(
-      at: DateTime.now(),
-      level: 'error',
-      tag: tag,
-      message: message,
-      error: error,
-      stackTrace: stackTrace,
-    ));
+  void error(
+    String tag,
+    String message, [
+    Object? error,
+    StackTrace? stackTrace,
+  ]) {
+    _add(
+      LogEntry(
+        at: DateTime.now(),
+        level: 'error',
+        tag: tag,
+        message: message,
+        error: error,
+        stackTrace: stackTrace,
+      ),
+    );
   }
 
   void _add(LogEntry entry) {
