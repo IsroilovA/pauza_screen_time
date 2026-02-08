@@ -111,6 +111,7 @@ class PermissionHandler(private val context: Context) {
     private fun requestUsageStatsPermission(activity: Activity): Boolean {
         return try {
             val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+            intent.data = Uri.parse("package:${context.packageName}")
             activity.startActivityForResult(intent, REQUEST_USAGE_STATS)
             true
         } catch (e: Exception) {

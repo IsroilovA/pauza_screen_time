@@ -46,6 +46,8 @@ await permissions.requestAndroidPermission(AndroidPermission.usageStats);
 await permissions.requestAndroidPermission(AndroidPermission.accessibility);
 ```
 
+These calls open Settings screens and do not synchronously confirm granted status. Re-check permissions after the user returns.
+
 2) Pick apps to restrict (package names) and apply restrictions:
 
 ```dart

@@ -50,11 +50,11 @@
    - Legacy feature-specific error codes are removed from plugin emissions.
    - Public managers throw typed sealed `PauzaError` subclasses with structured details.
 
-4) **Android permission request semantics are misleading** (spec §6.1):  
-   `requestAndroidPermission(...)` returns whether the Settings screen was opened, not whether permission was actually granted; `PermissionHelper.requestAllRequiredPermissions()` is currently guaranteed to return `false` on Android because it includes `queryAllPackages`.
+4) **Android permission request semantics are now explicit** (spec §6.1):  
+   `requestAndroidPermission(...)` now has a request-flow contract (`Future<void>`) and delegates to platform `requestPermission(...)` (not direct Dart-side settings-open). `PermissionHelper.requestAllRequiredPermissions()` no longer includes `queryAllPackages` in Android runtime request flow.
 
-5) **iOS App Group usage has a correctness risk** (shield config vs restriction state):  
-   `configureShield(appGroupId: ...)` stores shield config using that group, but restriction session state storage currently resolves the group independently and does not reliably follow the override. This can break extension sharing unless the host app’s Info.plist/App Group happens to match the plugin’s resolution.
+5) **iOS App Group override consistency fixed** (shield config + restriction state):  
+   iOS App Group-backed storage now follows one effective group identifier path. After `configureShield(appGroupId: ...)`, both shield configuration and restriction session state (`desiredRestrictedApps`, `pausedUntilEpochMs`) use the same resolved group for reads/writes.
 
 ### What looks “accepted” today (given current scope)
 
@@ -207,7 +207,7 @@ Key iOS implementations (iOS 16+):
   - Android: Usage Access, Accessibility, App details
   - iOS: open app Settings page
 
-**Accepted?** **Partially**, because Android “request” is not a true request (it opens Settings) and returns a misleading boolean.
+**Accepted?** Yes. Android request semantics are now explicit (platform request flow via `requestPermission(...)`, no grant boolean), and status checks remain available.
 
 #### Goal: “Offline operation for enforcement and schedules”
 
@@ -241,18 +241,10 @@ Key iOS implementations (iOS 16+):
   - `android.queryAllPackages`: best-effort check whether permission is declared and guarded query succeeds (Android 11+)
 - `openAndroidPermissionSettings(...)` deep links to appropriate Settings pages
 
-**Not accepted (behavior)**
-- `requestAndroidPermission(...)` returns a boolean that currently means “request intent started”, not “granted”.  
-  - Native code uses `startActivityForResult(...)` to open Settings screens.
-  - There is no callback channel or re-check to confirm grant.
-- `PermissionHelper.requestAllRequiredPermissions()` always includes `AndroidPermission.queryAllPackages`, which is not requestable at runtime; therefore the helper will often return `false` even if the user enabled the relevant settings.
-
-**Fixable?** Yes.
-- Change Dart docs + API contract to “opens settings screen” (return `void`) **or**
-- Return a richer result type like `{ started: bool, statusAfter: PermissionStatus }` after a re-check when app resumes.
-- Update `PermissionHelper` to:
-  - exclude `queryAllPackages` from “request” flow (treat it as install-time / policy concern)
-  - provide separate “capability declared/available” reporting
+**Accepted (updated behavior)**
+- `requestAndroidPermission(...)` returns `Future<void>` and starts the platform request flow via `requestPermission(...)`, not “granted”.
+- `PermissionHelper.requestAllRequiredPermissions()` no longer includes `AndroidPermission.queryAllPackages` in Android runtime requests.
+- Android permission status remains check-first/check-after-return via `checkAndroidPermission(...)`.
 
 #### iOS
 
@@ -576,7 +568,7 @@ Key iOS implementations (iOS 16+):
 
 - Detect and request required permissions/authorizations  
   - **iOS**: Done / Accepted  
-  - **Android**: Done / Not accepted (request semantics + helper bug)
+  - **Android**: Done / Accepted (request-flow semantics documented; helper fixed)
 - Select apps to restrict (Android enumerate, iOS picker tokens)  
   - **Done / Accepted**
 - Start/stop restrictions and observe state changes via events  
@@ -599,15 +591,17 @@ Key iOS implementations (iOS 16+):
 
 ## 8) Concrete issues list (why some items are “not accepted”)
 
-### Issue A — Android permission request returns “started”, not “granted”
-- **Where:** `android/.../permissions/PermissionHandler.requestPermission(...)` + `lib/.../PermissionManager.requestAndroidPermission(...)`
-- **Impact:** host app can’t rely on return value; spec calls for clear structured results.
-- **Fix:** change API contract or implement a re-check / lifecycle callback strategy.
+### Issue A — Android permission request returns “started”, not “granted” **[Resolved]**
+- **Where:** `lib/src/features/permissions/data/permission_manager.dart`
+- **Status:** **Resolved**
+  - `requestAndroidPermission(...)` now returns `Future<void>` with explicit platform request-flow semantics via `requestPermission(...)`.
+  - Grant state is obtained via explicit status checks.
 
-### Issue B — `PermissionHelper.requestAllRequiredPermissions()` is incorrect on Android
+### Issue B — `PermissionHelper.requestAllRequiredPermissions()` is incorrect on Android **[Resolved]**
 - **Where:** `lib/src/features/permissions/data/permission_helper.dart`
-- **Impact:** returns `false` due to `queryAllPackages` always being unrequestable.
-- **Fix:** remove `queryAllPackages` from the request set; treat it separately.
+- **Status:** **Resolved**
+  - Android request flow now excludes `queryAllPackages`.
+  - Helper opens only the first missing runtime permission Settings screen.
 
 ### Issue C — No explicit “start/stop enforcement”
 - **Where:** `AppRestrictionManager` API surface and both native implementations.
@@ -621,10 +615,13 @@ Key iOS implementations (iOS 16+):
   - Active-state checks now validate prerequisites.
   - Restriction writes now fail safely with stable errors when prerequisites are missing/denied.
 
-### Issue E — iOS App Group override likely not applied consistently
-- **Where:** `ios/Classes/AppRestriction/AppGroupStore.swift` + `RestrictionStateStore.swift`
-- **Impact:** shield config might be stored in one group while restriction state is stored/read from another.
-- **Fix:** make all stores use a single resolved group ID (preferably `AppGroupStore.currentGroupIdentifier` after `configureShield`).
+### Issue E — iOS App Group override likely not applied consistently **[Resolved]**
+- **Where:** `ios/Classes/AppRestriction/AppGroupStore.swift` + `RestrictionStateStore.swift` + `ShieldConfigurationStore.swift`
+- **Previous impact:** shield config could be stored in one group while restriction state was stored/read from another.
+- **Status:** **Resolved**
+  - `AppGroupStore.sharedDefaults()` now uses the effective current group when no explicit group is passed.
+  - Restriction state writes now use the same effective group ID path.
+  - Shield configuration writes now use the same effective group ID path when no explicit `appGroupId` is passed.
 
 ### Issue F — Android usage stats field semantics are confusing/likely wrong
 - **Where:** `android/.../usage_stats/UsageStatsHandler.kt`
@@ -666,8 +663,7 @@ Key iOS implementations (iOS 16+):
    - and decide whether to expose prerequisite diagnostics via a dedicated health/session API
 2) Fix permissions API contract:
    - make Android requests honest (settings navigation) and adjust helper accordingly
-3) Fix iOS App Group consistency for restriction state storage
-4) Decide whether scheduling is required now; if yes, design a cross-platform model and implement:
+3) Decide whether scheduling is required now; if yes, design a cross-platform model and implement:
    - Android background scheduling
    - iOS `DeviceActivityMonitor` extension guidance + shared state contract
-5) Tighten usage stats schema semantics (especially timestamps)
+4) Tighten usage stats schema semantics (especially timestamps)

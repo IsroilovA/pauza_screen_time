@@ -33,16 +33,23 @@ class PermissionManager {
     return _platform.checkPermission(permission.key).throwTypedPauzaError();
   }
 
-  /// Requests an Android permission from the user.
+  /// Starts the Android permission request flow for a permission requirement.
   ///
-  /// Returns true if the permission was granted.
+  /// This call does not return whether permission was granted. Re-check the
+  /// permission status when the app resumes.
+  ///
+  /// For [AndroidPermission.queryAllPackages], this method is a no-op because
+  /// it is a manifest/policy capability and not runtime-requestable.
   /// Only call this on Android platform.
-  Future<bool> requestAndroidPermission(AndroidPermission permission) {
+  Future<void> requestAndroidPermission(AndroidPermission permission) {
     if (!Platform.isAndroid) {
       throw const PauzaUnsupportedError(
         message: 'requestAndroidPermission is only available on Android',
         rawCode: 'UNSUPPORTED',
       );
+    }
+    if (permission == AndroidPermission.queryAllPackages) {
+      return Future<void>.value();
     }
     return _platform.requestPermission(permission.key).throwTypedPauzaError();
   }

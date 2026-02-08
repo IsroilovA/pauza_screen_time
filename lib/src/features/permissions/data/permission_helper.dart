@@ -23,16 +23,12 @@ class PermissionHelper {
     final results = <String, PermissionStatus>{};
 
     if (Platform.isAndroid) {
-      final typed = await _permissionManager.checkAndroidPermissions(
-        AndroidPermission.values,
-      );
+      final typed = await _permissionManager.checkAndroidPermissions(AndroidPermission.values);
       for (final entry in typed.entries) {
         results[entry.key.key] = entry.value;
       }
     } else if (Platform.isIOS) {
-      final typed = await _permissionManager.checkIOSPermissions(
-        IOSPermission.values,
-      );
+      final typed = await _permissionManager.checkIOSPermissions(IOSPermission.values);
       for (final entry in typed.entries) {
         results[entry.key.key] = entry.value;
       }
@@ -41,32 +37,30 @@ class PermissionHelper {
     return results;
   }
 
-  /// Requests all required permissions for the current platform.
+  /// Opens request flows for required permissions on the current platform.
   ///
-  /// Returns true if all permissions were granted.
-  Future<bool> requestAllRequiredPermissions() async {
+  /// On Android this opens only the first missing Settings screen among runtime
+  /// prerequisites. On iOS this triggers system authorization requests.
+  /// Re-check statuses after the user returns.
+  Future<void> requestAllRequiredPermissions() async {
     if (Platform.isAndroid) {
-      final results = await Future.wait([
-        _permissionManager.requestAndroidPermission(
-          AndroidPermission.usageStats,
-        ),
-        _permissionManager.requestAndroidPermission(
-          AndroidPermission.accessibility,
-        ),
-        _permissionManager.requestAndroidPermission(
-          AndroidPermission.queryAllPackages,
-        ),
+      final missingRuntimePermissions = await _permissionManager.getMissingAndroidPermissions([
+        AndroidPermission.usageStats,
+        AndroidPermission.accessibility,
       ]);
-      return results.every((granted) => granted);
+      if (missingRuntimePermissions.isEmpty) {
+        return;
+      }
+      await _permissionManager.requestAndroidPermission(missingRuntimePermissions.first);
+      return;
     } else if (Platform.isIOS) {
-      final results = await Future.wait([
-        _permissionManager.requestIOSPermission(IOSPermission.familyControls),
-        _permissionManager.requestIOSPermission(IOSPermission.screenTime),
-      ]);
-      return results.every((granted) => granted);
+      final missingPermissions = await _permissionManager.getMissingIOSPermissions();
+      if (missingPermissions.isEmpty) {
+        return;
+      }
+      await _permissionManager.requestIOSPermission(missingPermissions.first);
+      return;
     }
-
-    return false;
   }
 
   /// Checks if all required permissions are granted.

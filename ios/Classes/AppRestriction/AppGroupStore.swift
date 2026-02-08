@@ -12,8 +12,15 @@ enum AppGroupStore {
     }
 
     static func sharedDefaults(groupId: String? = nil) -> UserDefaults? {
-        let resolved = resolveGroupIdentifier(groupId)
+        let resolved = effectiveGroupIdentifier(groupId)
         return UserDefaults(suiteName: resolved)
+    }
+
+    static func effectiveGroupIdentifier(_ groupId: String? = nil) -> String {
+        if groupId == nil {
+            return currentGroupIdentifier
+        }
+        return resolveGroupIdentifier(groupId)
     }
 
     static func resolveGroupIdentifier(_ override: String?) -> String {

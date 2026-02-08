@@ -11,7 +11,7 @@ enum ShieldConfigurationStore {
 
     @discardableResult
     static func storeConfiguration(_ configuration: [String: Any], appGroupId: String? = nil) -> StoreResult {
-        let resolvedGroupId = AppGroupStore.resolveGroupIdentifier(appGroupId)
+        let resolvedGroupId = AppGroupStore.effectiveGroupIdentifier(appGroupId)
         guard let defaults = UserDefaults(suiteName: resolvedGroupId) else {
             return .appGroupUnavailable(resolvedGroupId: resolvedGroupId)
         }

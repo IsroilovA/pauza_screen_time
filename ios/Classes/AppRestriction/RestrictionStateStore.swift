@@ -28,7 +28,7 @@ enum RestrictionStateStore {
 
     @discardableResult
     static func storeDesiredRestrictedApps(_ tokens: [String]) -> StoreResult {
-        let resolvedGroupId = AppGroupStore.resolveGroupIdentifier(nil)
+        let resolvedGroupId = AppGroupStore.effectiveGroupIdentifier()
         guard let defaults = UserDefaults(suiteName: resolvedGroupId) else {
             return .appGroupUnavailable(resolvedGroupId: resolvedGroupId)
         }
@@ -57,7 +57,7 @@ enum RestrictionStateStore {
 
     @discardableResult
     static func storePausedUntilEpochMs(_ epochMs: Int64) -> StoreResult {
-        let resolvedGroupId = AppGroupStore.resolveGroupIdentifier(nil)
+        let resolvedGroupId = AppGroupStore.effectiveGroupIdentifier()
         guard let defaults = UserDefaults(suiteName: resolvedGroupId) else {
             return .appGroupUnavailable(resolvedGroupId: resolvedGroupId)
         }

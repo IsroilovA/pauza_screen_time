@@ -125,21 +125,17 @@ class PermissionTile extends StatelessWidget {
         'permissions',
         'Requesting ${permission.displayName}...',
       );
-      final granted = await permissionManager.requestAndroidPermission(
-        permission,
-      );
+      await permissionManager.requestAndroidPermission(permission);
       logController.info(
         'permissions',
-        'Request result for ${permission.displayName}: ${granted ? "granted" : "denied"}',
+        'Opened settings flow for ${permission.displayName}. Re-check after returning.',
       );
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              granted
-                  ? 'Permission granted!'
-                  : 'Please enable ${permission.displayName} in Settings and return to check again.',
+              'Settings opened. Please enable ${permission.displayName} and tap Check when you return.',
             ),
             duration: const Duration(seconds: 3),
           ),

@@ -20,7 +20,8 @@ abstract class PermissionPlatform extends PlatformInterface {
 
   /// Requests a specific permission from the user.
   ///
-  /// Returns true if the permission was granted.
+  /// Platform implementations may return whether a request flow was started.
+  /// Consumers should use `PermissionManager` for platform-aware behavior.
   Future<bool> requestPermission(String permissionKey) {
     throw UnimplementedError('requestPermission() has not been implemented.');
   }

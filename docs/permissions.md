@@ -27,6 +27,8 @@ await permissions.requestAndroidPermission(AndroidPermission.usageStats);
 await permissions.requestAndroidPermission(AndroidPermission.accessibility);
 ```
 
+`requestAndroidPermission(...)` opens the relevant Settings screen and returns when the intent is dispatched. It does not confirm granted status; call `checkAndroidPermission(...)` after the user returns.
+
 Typed error handling:
 
 ```dart
@@ -94,9 +96,11 @@ final helper = PermissionHelper(PermissionManager());
 await helper.requestAllRequiredPermissions();
 ```
 
+On Android, this opens only the first missing runtime prerequisite (`usageStats`, then `accessibility`) so your app can guide the user one step at a time.
+
 ### Note about Android `queryAllPackages`
 
-On Android, `QUERY_ALL_PACKAGES` is a manifest-level capability and cannot be granted via a runtime prompt. If you include `AndroidPermission.queryAllPackages` in a “request all” flow, the request will return `false` for that item even though other permissions may be granted.
+On Android, `QUERY_ALL_PACKAGES` is a manifest-level capability and cannot be granted via a runtime prompt. Treat it as an install-time/policy concern, not part of runtime request flows.
 
 ## Platform setup guides
 

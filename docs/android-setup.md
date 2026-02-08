@@ -41,6 +41,8 @@ final permissions = PermissionManager();
 await permissions.requestAndroidPermission(AndroidPermission.usageStats);
 ```
 
+This call opens the Usage Access Settings screen. Re-check permission status after the user returns to the app.
+
 ### How to verify
 
 1) Open **Settings** → **Security & privacy** (or similar) → **Usage access**
@@ -58,6 +60,8 @@ The plugin uses an `AccessibilityService` to detect foreground app changes. With
 final permissions = PermissionManager();
 await permissions.requestAndroidPermission(AndroidPermission.accessibility);
 ```
+
+This call opens the Accessibility Settings screen. Re-check permission status after the user returns to the app.
 
 ### How to verify
 
