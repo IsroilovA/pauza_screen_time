@@ -2,12 +2,11 @@ import Flutter
 
 enum PluginErrorCode {
     static let invalidArguments = "INVALID_ARGUMENT"
-    static let settingsError = "SETTINGS_ERROR"
-    static let viewControllerError = "VIEW_CONTROLLER_ERROR"
-    static let appGroupError = "APP_GROUP_ERROR"
+    static let missingPermission = "MISSING_PERMISSION"
+    static let permissionDenied = "PERMISSION_DENIED"
+    static let systemRestricted = "SYSTEM_RESTRICTED"
+    static let internalFailure = "INTERNAL_FAILURE"
     static let unsupported = "UNSUPPORTED"
-    static let invalidToken = "INVALID_TOKEN"
-    static let unexpectedError = "UNEXPECTED_ERROR"
 }
 
 enum PluginErrorMessage {
@@ -27,39 +26,129 @@ enum PluginErrorMessage {
 }
 
 enum PluginErrors {
-    static func invalidArguments(_ message: String) -> FlutterError {
-        FlutterError(code: PluginErrorCode.invalidArguments, message: message, details: nil)
-    }
-
-    static func settingsError(_ message: String) -> FlutterError {
-        FlutterError(code: PluginErrorCode.settingsError, message: message, details: nil)
-    }
-
-    static func viewControllerError(_ message: String) -> FlutterError {
-        FlutterError(code: PluginErrorCode.viewControllerError, message: message, details: nil)
-    }
-
-    static func appGroupError(details: [String: Any]) -> FlutterError {
-        FlutterError(code: PluginErrorCode.appGroupError, message: PluginErrorMessage.appGroupUnavailable, details: details)
-    }
-
-    static func unsupported(_ message: String) -> FlutterError {
-        FlutterError(code: PluginErrorCode.unsupported, message: message, details: nil)
-    }
-
-    static func invalidToken(message: String, invalidTokens: [String]) -> FlutterError {
+    static func invalidArguments(
+        feature: String,
+        action: String,
+        message: String,
+        diagnostic: String? = nil
+    ) -> FlutterError {
         FlutterError(
-            code: PluginErrorCode.invalidToken,
+            code: PluginErrorCode.invalidArguments,
             message: message,
-            details: ["invalidTokens": invalidTokens]
+            details: details(feature: feature, action: action, diagnostic: diagnostic)
         )
     }
 
-    static func unexpectedError(_ error: Error) -> FlutterError {
+    static func unsupported(
+        feature: String,
+        action: String,
+        message: String,
+        diagnostic: String? = nil
+    ) -> FlutterError {
         FlutterError(
-            code: PluginErrorCode.unexpectedError,
-            message: "An unexpected error occurred: \(error.localizedDescription)",
-            details: nil
+            code: PluginErrorCode.unsupported,
+            message: message,
+            details: details(feature: feature, action: action, diagnostic: diagnostic)
         )
+    }
+
+    static func missingPermission(
+        feature: String,
+        action: String,
+        message: String,
+        missing: [String]? = nil,
+        status: [String: Any]? = nil,
+        diagnostic: String? = nil
+    ) -> FlutterError {
+        FlutterError(
+            code: PluginErrorCode.missingPermission,
+            message: message,
+            details: details(
+                feature: feature,
+                action: action,
+                missing: missing,
+                status: status,
+                diagnostic: diagnostic
+            )
+        )
+    }
+
+    static func permissionDenied(
+        feature: String,
+        action: String,
+        message: String,
+        missing: [String]? = nil,
+        status: [String: Any]? = nil,
+        diagnostic: String? = nil
+    ) -> FlutterError {
+        FlutterError(
+            code: PluginErrorCode.permissionDenied,
+            message: message,
+            details: details(
+                feature: feature,
+                action: action,
+                missing: missing,
+                status: status,
+                diagnostic: diagnostic
+            )
+        )
+    }
+
+    static func systemRestricted(
+        feature: String,
+        action: String,
+        message: String,
+        missing: [String]? = nil,
+        status: [String: Any]? = nil,
+        diagnostic: String? = nil
+    ) -> FlutterError {
+        FlutterError(
+            code: PluginErrorCode.systemRestricted,
+            message: message,
+            details: details(
+                feature: feature,
+                action: action,
+                missing: missing,
+                status: status,
+                diagnostic: diagnostic
+            )
+        )
+    }
+
+    static func internalFailure(
+        feature: String,
+        action: String,
+        message: String,
+        diagnostic: String? = nil
+    ) -> FlutterError {
+        FlutterError(
+            code: PluginErrorCode.internalFailure,
+            message: message,
+            details: details(feature: feature, action: action, diagnostic: diagnostic)
+        )
+    }
+
+    private static func details(
+        feature: String,
+        action: String,
+        missing: [String]? = nil,
+        status: [String: Any]? = nil,
+        diagnostic: String? = nil
+    ) -> [String: Any] {
+        var payload: [String: Any] = [
+            "feature": feature,
+            "action": action,
+            "platform": "ios"
+        ]
+        if let missing, !missing.isEmpty {
+            payload["missing"] = missing
+        }
+        if let status, !status.isEmpty {
+            payload["status"] = status
+        }
+        if let diagnostic, !diagnostic.isEmpty {
+            payload["diagnostic"] = diagnostic
+        }
+        return payload
     }
 }

@@ -41,7 +41,7 @@ await restrictions.configureShield(const ShieldConfiguration(
 
 On iOS, `configureShield()` stores the configuration in **App Group UserDefaults** under the key `shieldConfiguration`.
 
-If the App Group is not configured correctly, iOS returns `APP_GROUP_ERROR`.
+If the App Group is not configured correctly, iOS returns `INTERNAL_FAILURE` with diagnostic details.
 
 See [iOS setup](ios-setup.md).
 
@@ -90,6 +90,16 @@ final restrictions = AppRestrictionManager();
 await restrictions.restrictApps(identifiers);
 ```
 
+Typed error handling:
+
+```dart
+try {
+  await restrictions.restrictApps(identifiers);
+} on PauzaError catch (error) {
+  // Handle `MISSING_PERMISSION` / `PERMISSION_DENIED` / etc.
+}
+```
+
 ## 4) Query current restrictions
 
 ```dart
@@ -110,7 +120,7 @@ final session = await restrictions.getRestrictionSession();
 ```
 
 `RestrictionSession` now includes:
-- `isActiveNow`: restrictions are currently enforcing (configured and not paused)
+- `isActiveNow`: restrictions are currently enforcing (configured, not paused, and all prerequisites are satisfied)
 - `isPausedNow`: pause is currently active
 - `pausedUntil`: pause expiration timestamp, if paused
 - `restrictedApps`: currently configured restricted identifiers
@@ -130,6 +140,21 @@ Behavior:
 - `isRestrictionSessionConfigured()` can still return `true` during pause.
 - Android resumes enforcement automatically after pause expiry.
 - iOS resumes when plugin/native logic runs; for reliable background-timed resume, set up the monitor extension in [iOS setup](ios-setup.md).
+
+## 7) Fail-safe enforcement errors
+
+When you apply restrictions while prerequisites are missing, the plugin now fails safely with stable error codes:
+
+- Android, Accessibility disabled:
+  - `MISSING_PERMISSION`
+  - `details.missing` includes `android.accessibility`
+- iOS, Screen Time not requested yet:
+  - `MISSING_PERMISSION`
+  - `details.missing` includes `ios.familyControls`
+- iOS, Screen Time denied:
+  - `PERMISSION_DENIED`
+
+Use `PauzaError.fromPlatformException(...)` to map these to typed Dart error categories.
 
 ## Verification checklist
 

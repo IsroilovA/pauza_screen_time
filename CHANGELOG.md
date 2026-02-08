@@ -1,3 +1,10 @@
+## 0.1.0
+
+* BREAKING: Plugin now emits only taxonomy error codes: `UNSUPPORTED`, `MISSING_PERMISSION`, `PERMISSION_DENIED`, `SYSTEM_RESTRICTED`, `INVALID_ARGUMENT`, `INTERNAL_FAILURE`.
+* BREAKING: Legacy feature-specific error codes are removed from plugin emissions.
+* BREAKING: Public manager APIs now throw sealed typed `PauzaError` subclasses (instead of exposing raw `PlatformException`).
+* Updated error documentation to taxonomy-only contract and typed sealed exception usage.
+
 ## 0.0.2
 
 * BREAKING: Restriction APIs now take/return `AppIdentifier` instead of raw `String`.

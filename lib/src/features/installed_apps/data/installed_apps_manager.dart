@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:pauza_screen_time/src/core/cancel_token.dart';
+import 'package:pauza_screen_time/src/core/pauza_error.dart';
 import 'package:pauza_screen_time/src/features/installed_apps/installed_apps_platform.dart';
 import 'package:pauza_screen_time/src/features/installed_apps/method_channel/installed_apps_method_channel.dart';
 import 'package:pauza_screen_time/src/features/installed_apps/model/app_info.dart';
@@ -29,17 +30,20 @@ class InstalledAppsManager {
     Duration timeout = const Duration(seconds: 30),
   }) async {
     if (!Platform.isAndroid) {
-      throw UnsupportedError(
-        'getAndroidInstalledApps is only available on Android',
+      throw const PauzaUnsupportedError(
+        message: 'getAndroidInstalledApps is only available on Android',
+        rawCode: 'UNSUPPORTED',
       );
     }
 
-    final result = await _platform.getInstalledApps(
-      includeSystemApps,
-      includeIcons: includeIcons,
-      cancelToken: cancelToken,
-      timeout: timeout,
-    );
+    final result = await _platform
+        .getInstalledApps(
+          includeSystemApps,
+          includeIcons: includeIcons,
+          cancelToken: cancelToken,
+          timeout: timeout,
+        )
+        .throwTypedPauzaError();
     return result
         .map((item) => AppInfo.fromMap(Map<String, dynamic>.from(item)))
         .whereType<AndroidAppInfo>()
@@ -60,15 +64,20 @@ class InstalledAppsManager {
     Duration timeout = const Duration(seconds: 30),
   }) async {
     if (!Platform.isAndroid) {
-      throw UnsupportedError('getAndroidAppInfo is only available on Android');
+      throw const PauzaUnsupportedError(
+        message: 'getAndroidAppInfo is only available on Android',
+        rawCode: 'UNSUPPORTED',
+      );
     }
 
-    final result = await _platform.getAppInfo(
-      packageId,
-      includeIcons: includeIcons,
-      cancelToken: cancelToken,
-      timeout: timeout,
-    );
+    final result = await _platform
+        .getAppInfo(
+          packageId,
+          includeIcons: includeIcons,
+          cancelToken: cancelToken,
+          timeout: timeout,
+        )
+        .throwTypedPauzaError();
     if (result == null) return null;
 
     final appInfo = AppInfo.fromMap(Map<String, dynamic>.from(result));
@@ -83,8 +92,9 @@ class InstalledAppsManager {
   /// Returns true if the app is installed, false otherwise.
   Future<bool> isAndroidAppInstalled(String packageId) async {
     if (!Platform.isAndroid) {
-      throw UnsupportedError(
-        'isAndroidAppInstalled is only available on Android',
+      throw const PauzaUnsupportedError(
+        message: 'isAndroidAppInstalled is only available on Android',
+        rawCode: 'UNSUPPORTED',
       );
     }
 
@@ -112,7 +122,10 @@ class InstalledAppsManager {
     List<IOSAppInfo>? preSelectedApps,
   }) async {
     if (!Platform.isIOS) {
-      throw UnsupportedError('selectIOSApps is only available on iOS');
+      throw const PauzaUnsupportedError(
+        message: 'selectIOSApps is only available on iOS',
+        rawCode: 'UNSUPPORTED',
+      );
     }
 
     // Extract tokens from pre-selected apps
@@ -120,9 +133,9 @@ class InstalledAppsManager {
         ?.map((app) => app.applicationToken)
         .toList();
 
-    final result = await _platform.showFamilyActivityPicker(
-      preSelectedTokens: preSelectedTokens,
-    );
+    final result = await _platform
+        .showFamilyActivityPicker(preSelectedTokens: preSelectedTokens)
+        .throwTypedPauzaError();
     return result
         .map((item) => AppInfo.fromMap(Map<String, dynamic>.from(item)))
         .whereType<IOSAppInfo>()

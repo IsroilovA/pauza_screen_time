@@ -44,9 +44,11 @@
 2) **Scheduling APIs are not implemented** (spec §4.4, §5.5 typo but scheduling section, §6.5, acceptance criteria):  
    No Dart APIs and no native scheduling mechanism exists.
 
-3) **Fail-safe enforcement reporting is not implemented** (spec §8):  
-   - Android restrictions can be set even if Accessibility is disabled; no error is surfaced.  
-   - iOS restrictions can be set without checking Screen Time authorization; no error is surfaced if the system ignores it.
+3) **Error model migration completed (hard break)** (spec §6.9):  
+   - Stable taxonomy codes are emitted uniformly across Android and iOS:
+     - `UNSUPPORTED`, `MISSING_PERMISSION`, `PERMISSION_DENIED`, `SYSTEM_RESTRICTED`, `INVALID_ARGUMENT`, `INTERNAL_FAILURE`.
+   - Legacy feature-specific error codes are removed from plugin emissions.
+   - Public managers throw typed sealed `PauzaError` subclasses with structured details.
 
 4) **Android permission request semantics are misleading** (spec §6.1):  
    `requestAndroidPermission(...)` returns whether the Settings screen was opened, not whether permission was actually granted; `PermissionHelper.requestAllRequiredPermissions()` is currently guaranteed to return `false` on Android because it includes `queryAllPackages`.
@@ -61,6 +63,7 @@
 - Android usage stats as aggregated per-app totals over a range is implemented (spec §5.5 / §6.6) with some schema/field naming concerns.
 - iOS usage reporting as an embeddable system UI view is implemented (spec §5.6 / §6.7), but still depends on host extensions.
 - Pause enforcement exists on both platforms (spec §6.4), but iOS “auto-resume at pause expiry” is **best-effort** without a monitor extension.
+- Fail-safe restriction enforcement checks are implemented for active-state and restriction writes on both platforms.
 
 ---
 
@@ -182,11 +185,11 @@ Key iOS implementations (iOS 16+):
 - Desired restricted tokens persist in App Group `UserDefaults`, but actual “re-application” is best-effort unless the host app adds extensions for background/termination scenarios.
 
 **Accepted?** **Partially**.
-- Android: works when prerequisites are enabled, but is not “fail-safe” and is user-disableable.
-- iOS: restrictions can be applied, but pause/resume and re-application semantics depend on host extensions.
+- Android: works when prerequisites are enabled and restriction writes now fail safely, but runtime blocking is still user-disableable via Accessibility settings.
+- iOS: restriction writes now fail safely, but pause/resume and re-application semantics still depend on host extensions.
 
 **Fixability**
-- Add explicit “preflight” checks (permissions/authorization) and surface structured errors when enforcement can’t be applied (see §6.1 / §6.3 gaps below).
+- For additional hardening, expose explicit prerequisite diagnostics in a dedicated health-check API.
 
 #### Goal: “Consistent Dart API without hiding limitations”
 
@@ -261,8 +264,10 @@ Key iOS implementations (iOS 16+):
 
 **Accepted?** Yes, within iOS 16+ scope.
 
-**Remaining gap (spec intent)**
-- Restrictions methods do not verify authorization before applying (see §6.3). This belongs to a “fail-safe” permission model.
+**Fail-safe status (spec intent)**
+- Restriction writes now verify prerequisites before applying:
+  - iOS checks Screen Time authorization status and returns stable errors when missing/denied.
+  - Android checks Accessibility prerequisite and returns stable errors when missing.
 
 ---
 
@@ -336,17 +341,15 @@ Key iOS implementations (iOS 16+):
 **Key non-accepted spec deviations**
 1) **No explicit start/stop enforcement**  
    - Clearing restrictions removes configuration rather than stopping enforcement while preserving a configured set.
-2) **Fail-safe behavior is missing**  
-   - `setRestrictedApps(...)` succeeds even if Accessibility is disabled; there is no structured error indicating “missing permission / service not enabled”.
-3) **Active-state reporting is optimistic**  
-   - Android `isRestrictionSessionActiveNow` returns `restrictedApps.isNotEmpty && !isPausedNow` without checking that Accessibility service is enabled/running.
+2) **No explicit start/stop enforcement state**  
+   - Restrictions are still configuration-driven (restricted set + pause), not an explicit “enforcement enabled” session state.
 
 **Fixable?** Yes.
 - Add a persisted “enforcementEnabled” boolean, separate from “desired restricted apps”.
 - Implement `startEnforcement()` / `stopEnforcement()` on Dart + native:
   - Android: service checks + store flag; `AppMonitoringService` consults it.
   - iOS: apply/clear `ManagedSettingsStore` while keeping desired tokens persisted.
-- Update `isRestrictionSessionActiveNow` to incorporate required prerequisites:
+- (Already done) `isRestrictionSessionActiveNow` now incorporates required prerequisites:
   - Android: accessibility enabled
   - iOS: authorization approved
 
@@ -363,7 +366,6 @@ Key iOS implementations (iOS 16+):
 - Core “restrict these tokens” behavior is correct for iOS 16+.
 - However:
   - No explicit start/stop enforcement API exists (same issue as Android).
-  - No authorization preflight is performed before applying.
   - Timed pause auto-resume depends on future invocations of plugin code (or a host extension).
 
 ---
@@ -479,23 +481,18 @@ Key iOS implementations (iOS 16+):
 ### 3.9 §6.9 Error model
 
 **What exists**
-- iOS returns `FlutterError` with codes like:
-  - `INVALID_ARGUMENT`, `SETTINGS_ERROR`, `VIEW_CONTROLLER_ERROR`, `APP_GROUP_ERROR`, `UNSUPPORTED`, `INVALID_TOKEN`, `UNEXPECTED_ERROR`
-  - See `ios/Classes/Core/PluginErrors.swift`
-- Android uses `result.error(code, message, details)` with codes like:
-  - `INVALID_ARGUMENT`, `NO_ACTIVITY`, `NO_CONTEXT`, `SETTINGS_ERROR`, `GET_APPS_ERROR`, `QUERY_USAGE_STATS_ERROR`, etc.
-  - See `android/src/main/kotlin/.../core/PluginErrors.kt`
+- Native layers now emit only taxonomy codes:
+  - `UNSUPPORTED`, `MISSING_PERMISSION`, `PERMISSION_DENIED`, `SYSTEM_RESTRICTED`, `INVALID_ARGUMENT`, `INTERNAL_FAILURE`.
+- Error `details` now follows a uniform schema:
+  - required: `feature`, `action`, `platform`
+  - optional: `missing`, `status`, `diagnostic`
+- Dart includes:
+  - sealed typed `PauzaError` model (`lib/src/core/pauza_error.dart`)
+  - direct throwing of typed `PauzaError` from manager APIs.
+- Documentation is updated in `docs/errors.md`.
 
-**Not accepted vs spec intent**
-- There is no **single, stable, documented taxonomy** across platforms (codes differ and some states are not represented uniformly).
-- Missing key categories from spec intent:
-  - “missing permission / authorization” errors for restriction enforcement,
-  - “system restricted (MDM/parental)” is not distinguished from denied,
-  - no typed Dart error/result wrappers (it is mostly PlatformExceptions).
-
-**Fixable?** Yes.
-- Define a Dart-side `PauzaError` model (sealed union) and map platform exceptions into it.
-- Ensure both platforms emit consistent `code`s for the same conceptual failures.
+**Accepted?** **Yes**.
+- The plugin now provides a stable taxonomy and typed Flutter-facing handling pattern via sealed typed exceptions.
 
 ---
 
@@ -513,7 +510,7 @@ Key iOS implementations (iOS 16+):
 
 **Implemented (current interpretation)**
 - “Configured” = restricted set non-empty (`isRestrictionSessionConfigured`)
-- “Active now” = configured and not paused (`isRestrictionSessionActiveNow`)
+- “Active now” = configured, not paused, and prerequisites currently satisfied (`isRestrictionSessionActiveNow`)
 - Session snapshot includes:
   - `isActiveNow`, `isPausedNow`, `pausedUntil`, `restrictedApps`
 
@@ -562,13 +559,10 @@ Key iOS implementations (iOS 16+):
 - Android native installed apps and usage stats handlers run on `Dispatchers.IO`.
 
 **Reliability gaps vs spec**
-- The plugin does not “fail safely” for enforcement:
-  - Android restrictions can be configured even if Accessibility is disabled.
-  - iOS restrictions can be configured/applied without verifying Screen Time authorization.
+- Restriction writes now fail safely with stable errors when prerequisites are missing/denied.
 - iOS timed pause auto-resume is best-effort without host extension.
 
 **Doable to improve?** Yes.
-- Add enforcement “preflight” checks and return clear errors.
 - Optionally add a “health check” API returning:
   - current permission/authorization statuses,
   - whether enforcement trigger components are enabled (Android accessibility),
@@ -620,10 +614,12 @@ Key iOS implementations (iOS 16+):
 - **Impact:** cannot “stop enforcing but keep configured restricted set”.
 - **Fix:** add explicit session enable/disable state.
 
-### Issue D — Active-state checks don’t validate prerequisites (“fail safe”)
+### Issue D — Active-state checks don’t validate prerequisites (“fail safe”) **[Resolved]**
 - **Where:** Android `handleIsRestrictionSessionActiveNow`, iOS `handleIsRestrictionSessionActiveNow`
-- **Impact:** UI may show “active” while enforcement is impossible (Accessibility off / authorization missing).
-- **Fix:** incorporate permission/authorization checks or return richer state.
+- **Previous impact:** UI could show “active” while enforcement was impossible (Accessibility off / authorization missing).
+- **Status:** **Resolved**
+  - Active-state checks now validate prerequisites.
+  - Restriction writes now fail safely with stable errors when prerequisites are missing/denied.
 
 ### Issue E — iOS App Group override likely not applied consistently
 - **Where:** `ios/Classes/AppRestriction/AppGroupStore.swift` + `RestrictionStateStore.swift`
@@ -667,7 +663,7 @@ Key iOS implementations (iOS 16+):
 
 1) Add explicit restriction session controls:
    - `startEnforcement()` / `stopEnforcement()` (preserve configured restricted set)
-   - and update “session snapshot” to include prerequisite status (Accessibility enabled / authorization approved)
+   - and decide whether to expose prerequisite diagnostics via a dedicated health/session API
 2) Fix permissions API contract:
    - make Android requests honest (settings navigation) and adjust helper accordingly
 3) Fix iOS App Group consistency for restriction state storage
@@ -675,4 +671,3 @@ Key iOS implementations (iOS 16+):
    - Android background scheduling
    - iOS `DeviceActivityMonitor` extension guidance + shared state contract
 5) Tighten usage stats schema semantics (especially timestamps)
-

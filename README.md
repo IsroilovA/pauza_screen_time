@@ -63,6 +63,21 @@ final isConfigured = await restrictions.isRestrictionSessionConfigured();
 final session = await restrictions.getRestrictionSession();
 ```
 
+## Error handling
+
+Plugin APIs throw typed `PauzaError` subclasses on failure:
+
+```dart
+try {
+  await AppRestrictionManager().restrictApps(identifiers);
+} on PauzaMissingPermissionError catch (error) {
+  // error.details includes structured diagnostics.
+}
+```
+
+Taxonomy codes:
+`UNSUPPORTED`, `MISSING_PERMISSION`, `PERMISSION_DENIED`, `SYSTEM_RESTRICTED`, `INVALID_ARGUMENT`, `INTERNAL_FAILURE`.
+
 ## Documentation
 
 Start here:
@@ -80,3 +95,4 @@ Feature guides:
 
 Help:
 - [Troubleshooting](docs/troubleshooting.md)
+- [Error model](docs/errors.md)

@@ -2,6 +2,8 @@ import Flutter
 import UIKit
 
 final class PermissionsMethodHandler {
+    private let feature = "permissions"
+
     func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case MethodNames.checkPermission:
@@ -18,7 +20,11 @@ final class PermissionsMethodHandler {
     private func handleCheckPermission(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
               let permissionKey = args["permissionKey"] as? String else {
-            result(PluginErrors.invalidArguments(PluginErrorMessage.missingPermissionKey))
+            result(PluginErrors.invalidArguments(
+                feature: feature,
+                action: MethodNames.checkPermission,
+                message: PluginErrorMessage.missingPermissionKey
+            ))
             return
         }
 
@@ -34,7 +40,11 @@ final class PermissionsMethodHandler {
     private func handleRequestPermission(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
               let permissionKey = args["permissionKey"] as? String else {
-            result(PluginErrors.invalidArguments(PluginErrorMessage.missingPermissionKey))
+            result(PluginErrors.invalidArguments(
+                feature: feature,
+                action: MethodNames.requestPermission,
+                message: PluginErrorMessage.missingPermissionKey
+            ))
             return
         }
 
@@ -51,7 +61,11 @@ final class PermissionsMethodHandler {
 
     private func handleOpenPermissionSettings(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else {
-            result(PluginErrors.settingsError(PluginErrorMessage.settingsUrlCreationFailed))
+            result(PluginErrors.internalFailure(
+                feature: feature,
+                action: MethodNames.openPermissionSettings,
+                message: PluginErrorMessage.settingsUrlCreationFailed
+            ))
             return
         }
 
@@ -60,11 +74,19 @@ final class PermissionsMethodHandler {
                 if success {
                     result(nil)
                 } else {
-                    result(PluginErrors.settingsError(PluginErrorMessage.settingsOpenFailed))
+                    result(PluginErrors.internalFailure(
+                        feature: feature,
+                        action: MethodNames.openPermissionSettings,
+                        message: PluginErrorMessage.settingsOpenFailed
+                    ))
                 }
             }
         } else {
-            result(PluginErrors.settingsError(PluginErrorMessage.settingsCannotOpen))
+            result(PluginErrors.internalFailure(
+                feature: feature,
+                action: MethodNames.openPermissionSettings,
+                message: PluginErrorMessage.settingsCannotOpen
+            ))
         }
     }
 }

@@ -2,6 +2,8 @@ import Flutter
 import UIKit
 
 final class InstalledAppsMethodHandler {
+    private let feature = "installed_apps"
+
     func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case MethodNames.showFamilyActivityPicker:
@@ -18,7 +20,11 @@ final class InstalledAppsMethodHandler {
         }
 
         guard let viewController = getPresentationViewController() else {
-            result(PluginErrors.viewControllerError(PluginErrorMessage.viewControllerUnavailable))
+            result(PluginErrors.internalFailure(
+                feature: feature,
+                action: MethodNames.showFamilyActivityPicker,
+                message: PluginErrorMessage.viewControllerUnavailable
+            ))
             return
         }
 

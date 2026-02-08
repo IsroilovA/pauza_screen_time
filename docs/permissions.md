@@ -27,6 +27,16 @@ await permissions.requestAndroidPermission(AndroidPermission.usageStats);
 await permissions.requestAndroidPermission(AndroidPermission.accessibility);
 ```
 
+Typed error handling:
+
+```dart
+try {
+  await permissions.requestAndroidPermission(AndroidPermission.accessibility);
+} on PauzaError catch (error) {
+  // Inspect error.code and error.details.
+}
+```
+
 ### Example: check missing permissions
 
 ```dart
@@ -51,6 +61,18 @@ These are represented by `IOSPermission`:
 ```dart
 final permissions = PermissionManager();
 final granted = await permissions.requestIOSPermission(IOSPermission.familyControls);
+```
+
+Typed error handling:
+
+```dart
+try {
+  final granted = await permissions.requestIOSPermission(
+    IOSPermission.familyControls,
+  );
+} on PauzaError catch (error) {
+  // Handle typed plugin errors.
+}
 ```
 
 ### Example: check status
@@ -80,4 +102,3 @@ On Android, `QUERY_ALL_PACKAGES` is a manifest-level capability and cannot be gr
 
 - [Android setup](android-setup.md)
 - [iOS setup](ios-setup.md)
-

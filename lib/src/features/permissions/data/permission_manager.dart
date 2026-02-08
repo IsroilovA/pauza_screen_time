@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:pauza_screen_time/src/core/pauza_error.dart';
 import 'package:pauza_screen_time/src/features/permissions/method_channel/permissions_method_channel.dart';
 import 'package:pauza_screen_time/src/features/permissions/model/android_permission.dart';
 import 'package:pauza_screen_time/src/features/permissions/model/ios_permission.dart';
@@ -23,8 +24,13 @@ class PermissionManager {
   Future<PermissionStatus> checkAndroidPermission(
     AndroidPermission permission,
   ) {
-    assert(Platform.isAndroid, 'This method is only available on Android');
-    return _platform.checkPermission(permission.key);
+    if (!Platform.isAndroid) {
+      throw const PauzaUnsupportedError(
+        message: 'checkAndroidPermission is only available on Android',
+        rawCode: 'UNSUPPORTED',
+      );
+    }
+    return _platform.checkPermission(permission.key).throwTypedPauzaError();
   }
 
   /// Requests an Android permission from the user.
@@ -32,8 +38,13 @@ class PermissionManager {
   /// Returns true if the permission was granted.
   /// Only call this on Android platform.
   Future<bool> requestAndroidPermission(AndroidPermission permission) {
-    assert(Platform.isAndroid, 'This method is only available on Android');
-    return _platform.requestPermission(permission.key);
+    if (!Platform.isAndroid) {
+      throw const PauzaUnsupportedError(
+        message: 'requestAndroidPermission is only available on Android',
+        rawCode: 'UNSUPPORTED',
+      );
+    }
+    return _platform.requestPermission(permission.key).throwTypedPauzaError();
   }
 
   /// Opens the system settings page for the specified Android permission.
@@ -41,8 +52,15 @@ class PermissionManager {
   /// Useful when a permission needs to be granted manually.
   /// Only call this on Android platform.
   Future<void> openAndroidPermissionSettings(AndroidPermission permission) {
-    assert(Platform.isAndroid, 'This method is only available on Android');
-    return _platform.openPermissionSettings(permission.key);
+    if (!Platform.isAndroid) {
+      throw const PauzaUnsupportedError(
+        message: 'openAndroidPermissionSettings is only available on Android',
+        rawCode: 'UNSUPPORTED',
+      );
+    }
+    return _platform
+        .openPermissionSettings(permission.key)
+        .throwTypedPauzaError();
   }
 
   // ============================================================
@@ -53,8 +71,13 @@ class PermissionManager {
   ///
   /// Only call this on iOS platform.
   Future<PermissionStatus> checkIOSPermission(IOSPermission permission) {
-    assert(Platform.isIOS, 'This method is only available on iOS');
-    return _platform.checkPermission(permission.key);
+    if (!Platform.isIOS) {
+      throw const PauzaUnsupportedError(
+        message: 'checkIOSPermission is only available on iOS',
+        rawCode: 'UNSUPPORTED',
+      );
+    }
+    return _platform.checkPermission(permission.key).throwTypedPauzaError();
   }
 
   /// Requests an iOS permission from the user.
@@ -62,8 +85,13 @@ class PermissionManager {
   /// Returns true if the permission was granted.
   /// Only call this on iOS platform.
   Future<bool> requestIOSPermission(IOSPermission permission) {
-    assert(Platform.isIOS, 'This method is only available on iOS');
-    return _platform.requestPermission(permission.key);
+    if (!Platform.isIOS) {
+      throw const PauzaUnsupportedError(
+        message: 'requestIOSPermission is only available on iOS',
+        rawCode: 'UNSUPPORTED',
+      );
+    }
+    return _platform.requestPermission(permission.key).throwTypedPauzaError();
   }
 
   // ============================================================
@@ -77,10 +105,17 @@ class PermissionManager {
   Future<Map<AndroidPermission, PermissionStatus>> checkAndroidPermissions(
     List<AndroidPermission> permissions,
   ) async {
-    assert(Platform.isAndroid, 'This method is only available on Android');
+    if (!Platform.isAndroid) {
+      throw const PauzaUnsupportedError(
+        message: 'checkAndroidPermissions is only available on Android',
+        rawCode: 'UNSUPPORTED',
+      );
+    }
     final results = <AndroidPermission, PermissionStatus>{};
     for (final permission in permissions) {
-      results[permission] = await _platform.checkPermission(permission.key);
+      results[permission] = await _platform
+          .checkPermission(permission.key)
+          .throwTypedPauzaError();
     }
     return results;
   }
@@ -92,10 +127,17 @@ class PermissionManager {
   Future<Map<IOSPermission, PermissionStatus>> checkIOSPermissions(
     List<IOSPermission> permissions,
   ) async {
-    assert(Platform.isIOS, 'This method is only available on iOS');
+    if (!Platform.isIOS) {
+      throw const PauzaUnsupportedError(
+        message: 'checkIOSPermissions is only available on iOS',
+        rawCode: 'UNSUPPORTED',
+      );
+    }
     final results = <IOSPermission, PermissionStatus>{};
     for (final permission in permissions) {
-      results[permission] = await _platform.checkPermission(permission.key);
+      results[permission] = await _platform
+          .checkPermission(permission.key)
+          .throwTypedPauzaError();
     }
     return results;
   }
@@ -107,7 +149,12 @@ class PermissionManager {
   Future<List<AndroidPermission>> getMissingAndroidPermissions([
     List<AndroidPermission>? subset,
   ]) async {
-    assert(Platform.isAndroid, 'This method is only available on Android');
+    if (!Platform.isAndroid) {
+      throw const PauzaUnsupportedError(
+        message: 'getMissingAndroidPermissions is only available on Android',
+        rawCode: 'UNSUPPORTED',
+      );
+    }
     final permissionsToCheck = subset ?? AndroidPermission.values;
     final statuses = await checkAndroidPermissions(permissionsToCheck);
     return statuses.entries
@@ -123,7 +170,12 @@ class PermissionManager {
   Future<List<IOSPermission>> getMissingIOSPermissions([
     List<IOSPermission>? subset,
   ]) async {
-    assert(Platform.isIOS, 'This method is only available on iOS');
+    if (!Platform.isIOS) {
+      throw const PauzaUnsupportedError(
+        message: 'getMissingIOSPermissions is only available on iOS',
+        rawCode: 'UNSUPPORTED',
+      );
+    }
     final permissionsToCheck = subset ?? IOSPermission.values;
     final statuses = await checkIOSPermissions(permissionsToCheck);
     return statuses.entries

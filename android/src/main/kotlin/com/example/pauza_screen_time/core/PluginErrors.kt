@@ -4,45 +4,117 @@ import io.flutter.plugin.common.MethodChannel.Result
 
 object PluginErrors {
     const val CODE_INVALID_ARGUMENT = "INVALID_ARGUMENT"
-    const val CODE_NO_ACTIVITY = "NO_ACTIVITY"
-    const val CODE_NO_CONTEXT = "NO_CONTEXT"
-    const val CODE_SETTINGS_ERROR = "SETTINGS_ERROR"
-    const val CODE_GET_APPS_ERROR = "GET_APPS_ERROR"
-    const val CODE_GET_APP_INFO_ERROR = "GET_APP_INFO_ERROR"
-    const val CODE_QUERY_USAGE_STATS_ERROR = "QUERY_USAGE_STATS_ERROR"
-    const val CODE_QUERY_APP_USAGE_STATS_ERROR = "QUERY_APP_USAGE_STATS_ERROR"
-    const val CODE_CONFIGURE_SHIELD_ERROR = "CONFIGURE_SHIELD_ERROR"
-    const val CODE_SET_RESTRICTED_APPS_ERROR = "SET_RESTRICTED_APPS_ERROR"
-    const val CODE_ADD_RESTRICTED_APP_ERROR = "ADD_RESTRICTED_APP_ERROR"
-    const val CODE_REMOVE_RESTRICTION_ERROR = "REMOVE_RESTRICTION_ERROR"
-    const val CODE_REMOVE_ALL_RESTRICTIONS_ERROR = "REMOVE_ALL_RESTRICTIONS_ERROR"
-    const val CODE_GET_RESTRICTED_APPS_ERROR = "GET_RESTRICTED_APPS_ERROR"
-    const val CODE_IS_RESTRICTED_ERROR = "IS_RESTRICTED_ERROR"
-    const val CODE_UNEXPECTED_ERROR = "UNEXPECTED_ERROR"
+    const val CODE_MISSING_PERMISSION = "MISSING_PERMISSION"
+    const val CODE_PERMISSION_DENIED = "PERMISSION_DENIED"
+    const val CODE_SYSTEM_RESTRICTED = "SYSTEM_RESTRICTED"
+    const val CODE_INTERNAL_FAILURE = "INTERNAL_FAILURE"
 }
 
 object PluginErrorHelper {
-    fun invalidArgument(result: Result, message: String) {
-        result.error(PluginErrors.CODE_INVALID_ARGUMENT, message, null)
-    }
+    private const val PLATFORM_ANDROID = "android"
 
-    fun noActivity(result: Result, message: String) {
-        result.error(PluginErrors.CODE_NO_ACTIVITY, message, null)
-    }
-
-    fun noContext(result: Result, message: String = "Application context is not available") {
-        result.error(PluginErrors.CODE_NO_CONTEXT, message, null)
-    }
-
-    fun error(result: Result, code: String, message: String, error: Exception? = null) {
-        result.error(code, message, error?.stackTraceToString())
-    }
-
-    fun unexpectedError(result: Result, error: Exception) {
+    fun invalidArgument(
+        result: Result,
+        feature: String,
+        action: String,
+        message: String,
+        diagnostic: String? = null,
+    ) {
         result.error(
-            PluginErrors.CODE_UNEXPECTED_ERROR,
-            "An unexpected error occurred: ${error.message}",
-            error.stackTraceToString()
+            PluginErrors.CODE_INVALID_ARGUMENT,
+            message,
+            details(feature, action, diagnostic = diagnostic),
         )
+    }
+
+    fun missingPermission(
+        result: Result,
+        feature: String,
+        action: String,
+        message: String,
+        missing: List<String>? = null,
+        status: Map<String, Any?>? = null,
+        diagnostic: String? = null,
+    ) {
+        result.error(
+            PluginErrors.CODE_MISSING_PERMISSION,
+            message,
+            details(feature, action, missing = missing, status = status, diagnostic = diagnostic),
+        )
+    }
+
+    fun permissionDenied(
+        result: Result,
+        feature: String,
+        action: String,
+        message: String,
+        missing: List<String>? = null,
+        status: Map<String, Any?>? = null,
+        diagnostic: String? = null,
+    ) {
+        result.error(
+            PluginErrors.CODE_PERMISSION_DENIED,
+            message,
+            details(feature, action, missing = missing, status = status, diagnostic = diagnostic),
+        )
+    }
+
+    fun systemRestricted(
+        result: Result,
+        feature: String,
+        action: String,
+        message: String,
+        missing: List<String>? = null,
+        status: Map<String, Any?>? = null,
+        diagnostic: String? = null,
+    ) {
+        result.error(
+            PluginErrors.CODE_SYSTEM_RESTRICTED,
+            message,
+            details(feature, action, missing = missing, status = status, diagnostic = diagnostic),
+        )
+    }
+
+    fun internalFailure(
+        result: Result,
+        feature: String,
+        action: String,
+        message: String,
+        diagnostic: String? = null,
+        error: Exception? = null,
+    ) {
+        result.error(
+            PluginErrors.CODE_INTERNAL_FAILURE,
+            message,
+            details(feature, action, diagnostic = diagnostic, throwable = error),
+        )
+    }
+
+    private fun details(
+        feature: String,
+        action: String,
+        missing: List<String>? = null,
+        status: Map<String, Any?>? = null,
+        diagnostic: String? = null,
+        throwable: Throwable? = null,
+    ): Map<String, Any?> {
+        return mutableMapOf<String, Any?>(
+            "feature" to feature,
+            "action" to action,
+            "platform" to PLATFORM_ANDROID,
+        ).apply {
+            if (!missing.isNullOrEmpty()) {
+                this["missing"] = missing
+            }
+            if (!status.isNullOrEmpty()) {
+                this["status"] = status
+            }
+            if (!diagnostic.isNullOrBlank()) {
+                this["diagnostic"] = diagnostic
+            }
+            if (throwable != null) {
+                this["diagnostic"] = throwable.stackTraceToString()
+            }
+        }
     }
 }

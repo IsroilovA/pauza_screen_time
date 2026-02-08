@@ -1,7 +1,12 @@
 import Flutter
+import FamilyControls
 import Foundation
 
 final class RestrictionsMethodHandler {
+    private static let iosFamilyControlsKey = "ios.familyControls"
+    private static let featureRestrictions = "restrictions"
+    private static let platformIOS = "ios"
+
     func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case MethodNames.configureShield:
@@ -35,7 +40,11 @@ final class RestrictionsMethodHandler {
 
     private func handleConfigureShield(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard var configuration = call.arguments as? [String: Any] else {
-            result(PluginErrors.invalidArguments(PluginErrorMessage.missingShieldConfiguration))
+            result(PluginErrors.invalidArguments(
+                feature: Self.featureRestrictions,
+                action: MethodNames.configureShield,
+                message: PluginErrorMessage.missingShieldConfiguration
+            ))
             return
         }
 
@@ -53,33 +62,48 @@ final class RestrictionsMethodHandler {
         case .success:
             result(nil)
         case .appGroupUnavailable(let resolvedGroupId):
-            var details: [String: Any] = [
-                "resolvedAppGroupId": resolvedGroupId
-            ]
+            var diagnostic = "Unable to access App Group for shield configuration. resolvedAppGroupId=\(resolvedGroupId)"
             if let appGroupId {
-                details["appGroupId"] = appGroupId
-            } else {
-                details["appGroupId"] = NSNull()
+                diagnostic += ", appGroupId=\(appGroupId)"
             }
-            result(PluginErrors.appGroupError(details: details))
+            result(PluginErrors.internalFailure(
+                feature: Self.featureRestrictions,
+                action: MethodNames.configureShield,
+                message: PluginErrorMessage.appGroupUnavailable,
+                diagnostic: diagnostic
+            ))
         }
     }
 
     private func handleSetRestrictedApps(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard #available(iOS 16.0, *) else {
-            result(PluginErrors.unsupported(PluginErrorMessage.restrictionsUnsupported))
+            result(PluginErrors.unsupported(
+                feature: Self.featureRestrictions,
+                action: MethodNames.setRestrictedApps,
+                message: PluginErrorMessage.restrictionsUnsupported
+            ))
             return
         }
         guard let args = call.arguments as? [String: Any],
               let tokens = args["identifiers"] as? [String] else {
-            result(PluginErrors.invalidArguments(PluginErrorMessage.missingIdentifiers))
+            result(PluginErrors.invalidArguments(
+                feature: Self.featureRestrictions,
+                action: MethodNames.setRestrictedApps,
+                message: PluginErrorMessage.missingIdentifiers
+            ))
+            return
+        }
+        if !tokens.isEmpty, let preflightError = restrictionPreflightError(action: MethodNames.setRestrictedApps) {
+            result(preflightError)
             return
         }
         let decodeResult = ShieldManager.shared.decodeTokens(base64Tokens: tokens)
         if !decodeResult.invalidTokens.isEmpty {
-            result(PluginErrors.invalidToken(
+            result(PluginErrors.invalidArguments(
+                feature: Self.featureRestrictions,
+                action: MethodNames.setRestrictedApps,
                 message: PluginErrorMessage.unableToDecodeTokens,
-                invalidTokens: decodeResult.invalidTokens
+                diagnostic: "invalidTokens=\(decodeResult.invalidTokens)"
             ))
             return
         }
@@ -88,7 +112,12 @@ final class RestrictionsMethodHandler {
         case .success:
             break
         case .appGroupUnavailable(let resolvedGroupId):
-            result(appGroupError(resolvedGroupId: resolvedGroupId))
+            result(PluginErrors.internalFailure(
+                feature: Self.featureRestrictions,
+                action: MethodNames.setRestrictedApps,
+                message: PluginErrorMessage.appGroupUnavailable,
+                diagnostic: "resolvedAppGroupId=\(resolvedGroupId)"
+            ))
             return
         }
 
@@ -98,20 +127,34 @@ final class RestrictionsMethodHandler {
 
     private func handleAddRestrictedApp(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard #available(iOS 16.0, *) else {
-            result(PluginErrors.unsupported(PluginErrorMessage.restrictionsUnsupported))
+            result(PluginErrors.unsupported(
+                feature: Self.featureRestrictions,
+                action: MethodNames.addRestrictedApp,
+                message: PluginErrorMessage.restrictionsUnsupported
+            ))
             return
         }
         guard let args = call.arguments as? [String: Any],
               let token = args["identifier"] as? String else {
-            result(PluginErrors.invalidArguments(PluginErrorMessage.missingIdentifier))
+            result(PluginErrors.invalidArguments(
+                feature: Self.featureRestrictions,
+                action: MethodNames.addRestrictedApp,
+                message: PluginErrorMessage.missingIdentifier
+            ))
+            return
+        }
+        if let preflightError = restrictionPreflightError(action: MethodNames.addRestrictedApp) {
+            result(preflightError)
             return
         }
 
         let decodeResult = ShieldManager.shared.decodeTokens(base64Tokens: [token])
         if !decodeResult.invalidTokens.isEmpty {
-            result(PluginErrors.invalidToken(
+            result(PluginErrors.invalidArguments(
+                feature: Self.featureRestrictions,
+                action: MethodNames.addRestrictedApp,
                 message: PluginErrorMessage.unableToDecodeToken,
-                invalidTokens: decodeResult.invalidTokens
+                diagnostic: "invalidTokens=\(decodeResult.invalidTokens)"
             ))
             return
         }
@@ -128,7 +171,12 @@ final class RestrictionsMethodHandler {
         case .success:
             break
         case .appGroupUnavailable(let resolvedGroupId):
-            result(appGroupError(resolvedGroupId: resolvedGroupId))
+            result(PluginErrors.internalFailure(
+                feature: Self.featureRestrictions,
+                action: MethodNames.addRestrictedApp,
+                message: PluginErrorMessage.appGroupUnavailable,
+                diagnostic: "resolvedAppGroupId=\(resolvedGroupId)"
+            ))
             return
         }
 
@@ -138,20 +186,30 @@ final class RestrictionsMethodHandler {
 
     private func handleRemoveRestriction(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard #available(iOS 16.0, *) else {
-            result(PluginErrors.unsupported(PluginErrorMessage.restrictionsUnsupported))
+            result(PluginErrors.unsupported(
+                feature: Self.featureRestrictions,
+                action: MethodNames.removeRestriction,
+                message: PluginErrorMessage.restrictionsUnsupported
+            ))
             return
         }
         guard let args = call.arguments as? [String: Any],
               let token = args["identifier"] as? String else {
-            result(PluginErrors.invalidArguments(PluginErrorMessage.missingIdentifier))
+            result(PluginErrors.invalidArguments(
+                feature: Self.featureRestrictions,
+                action: MethodNames.removeRestriction,
+                message: PluginErrorMessage.missingIdentifier
+            ))
             return
         }
 
         let decodeResult = ShieldManager.shared.decodeTokens(base64Tokens: [token])
         if !decodeResult.invalidTokens.isEmpty {
-            result(PluginErrors.invalidToken(
+            result(PluginErrors.invalidArguments(
+                feature: Self.featureRestrictions,
+                action: MethodNames.removeRestriction,
                 message: PluginErrorMessage.unableToDecodeToken,
-                invalidTokens: decodeResult.invalidTokens
+                diagnostic: "invalidTokens=\(decodeResult.invalidTokens)"
             ))
             return
         }
@@ -166,7 +224,12 @@ final class RestrictionsMethodHandler {
         case .success:
             break
         case .appGroupUnavailable(let resolvedGroupId):
-            result(appGroupError(resolvedGroupId: resolvedGroupId))
+            result(PluginErrors.internalFailure(
+                feature: Self.featureRestrictions,
+                action: MethodNames.removeRestriction,
+                message: PluginErrorMessage.appGroupUnavailable,
+                diagnostic: "resolvedAppGroupId=\(resolvedGroupId)"
+            ))
             return
         }
 
@@ -176,20 +239,30 @@ final class RestrictionsMethodHandler {
 
     private func handleIsRestricted(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard #available(iOS 16.0, *) else {
-            result(PluginErrors.unsupported(PluginErrorMessage.restrictionsUnsupported))
+            result(PluginErrors.unsupported(
+                feature: Self.featureRestrictions,
+                action: MethodNames.isRestricted,
+                message: PluginErrorMessage.restrictionsUnsupported
+            ))
             return
         }
         guard let args = call.arguments as? [String: Any],
               let token = args["identifier"] as? String else {
-            result(PluginErrors.invalidArguments(PluginErrorMessage.missingIdentifier))
+            result(PluginErrors.invalidArguments(
+                feature: Self.featureRestrictions,
+                action: MethodNames.isRestricted,
+                message: PluginErrorMessage.missingIdentifier
+            ))
             return
         }
 
         let decodeResult = ShieldManager.shared.decodeTokens(base64Tokens: [token])
         if !decodeResult.invalidTokens.isEmpty {
-            result(PluginErrors.invalidToken(
+            result(PluginErrors.invalidArguments(
+                feature: Self.featureRestrictions,
+                action: MethodNames.isRestricted,
                 message: PluginErrorMessage.unableToDecodeToken,
-                invalidTokens: decodeResult.invalidTokens
+                diagnostic: "invalidTokens=\(decodeResult.invalidTokens)"
             ))
             return
         }
@@ -200,7 +273,11 @@ final class RestrictionsMethodHandler {
 
     private func handleRemoveAllRestrictions(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard #available(iOS 16.0, *) else {
-            result(PluginErrors.unsupported(PluginErrorMessage.restrictionsUnsupported))
+            result(PluginErrors.unsupported(
+                feature: Self.featureRestrictions,
+                action: MethodNames.removeAllRestrictions,
+                message: PluginErrorMessage.restrictionsUnsupported
+            ))
             return
         }
 
@@ -208,7 +285,12 @@ final class RestrictionsMethodHandler {
         case .success:
             break
         case .appGroupUnavailable(let resolvedGroupId):
-            result(appGroupError(resolvedGroupId: resolvedGroupId))
+            result(PluginErrors.internalFailure(
+                feature: Self.featureRestrictions,
+                action: MethodNames.removeAllRestrictions,
+                message: PluginErrorMessage.appGroupUnavailable,
+                diagnostic: "resolvedAppGroupId=\(resolvedGroupId)"
+            ))
             return
         }
 
@@ -236,7 +318,8 @@ final class RestrictionsMethodHandler {
         applyDesiredRestrictionsIfNeeded()
         let restrictedApps = RestrictionStateStore.loadDesiredRestrictedApps()
         let isPausedNow = RestrictionStateStore.loadPausedUntilEpochMs() > 0
-        result(!restrictedApps.isEmpty && !isPausedNow)
+        let isPrerequisitesMet = restrictionMissingPrerequisites().isEmpty
+        result(!restrictedApps.isEmpty && !isPausedNow && isPrerequisitesMet)
     }
 
     private func handleIsRestrictionSessionConfigured(result: @escaping FlutterResult) {
@@ -252,23 +335,39 @@ final class RestrictionsMethodHandler {
 
     private func handlePauseEnforcement(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard #available(iOS 16.0, *) else {
-            result(PluginErrors.unsupported(PluginErrorMessage.restrictionsUnsupported))
+            result(PluginErrors.unsupported(
+                feature: Self.featureRestrictions,
+                action: MethodNames.pauseEnforcement,
+                message: PluginErrorMessage.restrictionsUnsupported
+            ))
             return
         }
 
         guard let args = call.arguments as? [String: Any],
               let durationValue = args["durationMs"] as? NSNumber else {
-            result(PluginErrors.invalidArguments("Missing or invalid 'durationMs' argument"))
+            result(PluginErrors.invalidArguments(
+                feature: Self.featureRestrictions,
+                action: MethodNames.pauseEnforcement,
+                message: "Missing or invalid 'durationMs' argument"
+            ))
             return
         }
         let durationMs = durationValue.int64Value
         if durationMs <= 0 {
-            result(PluginErrors.invalidArguments("Missing or invalid 'durationMs' argument"))
+            result(PluginErrors.invalidArguments(
+                feature: Self.featureRestrictions,
+                action: MethodNames.pauseEnforcement,
+                message: "Missing or invalid 'durationMs' argument"
+            ))
             return
         }
 
         if RestrictionStateStore.loadPausedUntilEpochMs() > 0 {
-            result(PluginErrors.invalidArguments("Restriction enforcement is already paused"))
+            result(PluginErrors.invalidArguments(
+                feature: Self.featureRestrictions,
+                action: MethodNames.pauseEnforcement,
+                message: "Restriction enforcement is already paused"
+            ))
             return
         }
 
@@ -277,7 +376,12 @@ final class RestrictionsMethodHandler {
         case .success:
             break
         case .appGroupUnavailable(let resolvedGroupId):
-            result(appGroupError(resolvedGroupId: resolvedGroupId))
+            result(PluginErrors.internalFailure(
+                feature: Self.featureRestrictions,
+                action: MethodNames.pauseEnforcement,
+                message: PluginErrorMessage.appGroupUnavailable,
+                diagnostic: "resolvedAppGroupId=\(resolvedGroupId)"
+            ))
             return
         }
 
@@ -287,7 +391,11 @@ final class RestrictionsMethodHandler {
 
     private func handleResumeEnforcement(result: @escaping FlutterResult) {
         guard #available(iOS 16.0, *) else {
-            result(PluginErrors.unsupported(PluginErrorMessage.restrictionsUnsupported))
+            result(PluginErrors.unsupported(
+                feature: Self.featureRestrictions,
+                action: MethodNames.resumeEnforcement,
+                message: PluginErrorMessage.restrictionsUnsupported
+            ))
             return
         }
 
@@ -295,7 +403,12 @@ final class RestrictionsMethodHandler {
         case .success:
             break
         case .appGroupUnavailable(let resolvedGroupId):
-            result(appGroupError(resolvedGroupId: resolvedGroupId))
+            result(PluginErrors.internalFailure(
+                feature: Self.featureRestrictions,
+                action: MethodNames.resumeEnforcement,
+                message: PluginErrorMessage.appGroupUnavailable,
+                diagnostic: "resolvedAppGroupId=\(resolvedGroupId)"
+            ))
             return
         }
 
@@ -319,8 +432,9 @@ final class RestrictionsMethodHandler {
         let restrictedApps = RestrictionStateStore.loadDesiredRestrictedApps()
         let pausedUntilEpochMs = RestrictionStateStore.loadPausedUntilEpochMs()
         let isPausedNow = pausedUntilEpochMs > 0
+        let isPrerequisitesMet = restrictionMissingPrerequisites().isEmpty
         result([
-            "isActiveNow": !restrictedApps.isEmpty && !isPausedNow,
+            "isActiveNow": !restrictedApps.isEmpty && !isPausedNow && isPrerequisitesMet,
             "isPausedNow": isPausedNow,
             "pausedUntilEpochMs": isPausedNow ? pausedUntilEpochMs : NSNull(),
             "restrictedApps": restrictedApps
@@ -330,6 +444,11 @@ final class RestrictionsMethodHandler {
     @available(iOS 16.0, *)
     private func applyDesiredRestrictionsIfNeeded() {
         ensureDesiredRestrictionsInitializedFromManagedStore()
+        guard restrictionMissingPrerequisites().isEmpty else {
+            ShieldManager.shared.clearRestrictions()
+            return
+        }
+
         let desiredRestrictedApps = RestrictionStateStore.loadDesiredRestrictedApps()
         if desiredRestrictedApps.isEmpty {
             ShieldManager.shared.clearRestrictions()
@@ -350,15 +469,6 @@ final class RestrictionsMethodHandler {
         ShieldManager.shared.setRestrictedApps(decodeResult.tokens)
     }
 
-    private func appGroupError(resolvedGroupId: String) -> FlutterError {
-        PluginErrors.appGroupError(
-            details: [
-                "resolvedAppGroupId": resolvedGroupId,
-                "appGroupId": AppGroupStore.currentGroupIdentifier
-            ]
-        )
-    }
-
     @available(iOS 16.0, *)
     private func ensureDesiredRestrictionsInitializedFromManagedStore() {
         let desiredRestrictedApps = RestrictionStateStore.loadDesiredRestrictedApps()
@@ -372,5 +482,70 @@ final class RestrictionsMethodHandler {
         }
 
         _ = RestrictionStateStore.storeDesiredRestrictedApps(currentlyApplied)
+    }
+
+    @available(iOS 16.0, *)
+    private func restrictionMissingPrerequisites() -> [String] {
+        let isAuthorized = AuthorizationCenter.shared.authorizationStatus == .approved
+        return isAuthorized ? [] : [Self.iosFamilyControlsKey]
+    }
+
+    @available(iOS 16.0, *)
+    private func restrictionPreflightError(action: String) -> FlutterError? {
+        let authorizationStatus = AuthorizationCenter.shared.authorizationStatus
+        if authorizationStatus == .approved {
+            return nil
+        }
+
+        let details: [String: Any] = [
+            "feature": Self.featureRestrictions,
+            "action": action,
+            "platform": Self.platformIOS,
+            "missing": [Self.iosFamilyControlsKey],
+            "status": [
+                "iosAuthorizationStatus": iosAuthorizationStatusKey(authorizationStatus)
+            ],
+        ]
+
+        switch authorizationStatus {
+        case .notDetermined:
+            return PluginErrors.missingPermission(
+                feature: Self.featureRestrictions,
+                action: action,
+                message: "Screen Time authorization is required for restrictions",
+                missing: details["missing"] as? [String],
+                status: details["status"] as? [String: Any]
+            )
+        case .denied:
+            return PluginErrors.permissionDenied(
+                feature: Self.featureRestrictions,
+                action: action,
+                message: "Screen Time authorization was denied",
+                missing: details["missing"] as? [String],
+                status: details["status"] as? [String: Any]
+            )
+        @unknown default:
+            return PluginErrors.systemRestricted(
+                feature: Self.featureRestrictions,
+                action: action,
+                message: "Screen Time authorization is unavailable",
+                missing: details["missing"] as? [String],
+                status: details["status"] as? [String: Any]
+            )
+        }
+    }
+
+    @available(iOS 16.0, *)
+    private func iosAuthorizationStatusKey(_ status: AuthorizationStatus) -> String {
+        switch status {
+        case .approved:
+            return "approved"
+        case .denied:
+            return "denied"
+        case .notDetermined:
+            return "notDetermined"
+        @unknown default:
+            return "unknown"
+        }
     }
 }

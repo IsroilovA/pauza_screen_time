@@ -1,4 +1,5 @@
 import 'package:pauza_screen_time/src/core/app_identifier.dart';
+import 'package:pauza_screen_time/src/core/pauza_error.dart';
 import 'package:pauza_screen_time/src/features/restrict_apps/app_restriction_platform.dart';
 import 'package:pauza_screen_time/src/features/restrict_apps/method_channel/restrictions_method_channel.dart';
 import 'package:pauza_screen_time/src/features/restrict_apps/model/restriction_session.dart';
@@ -20,7 +21,9 @@ class AppRestrictionManager {
   /// Must be called before setting restrictions to define how
   /// the shield will appear when a restricted app is launched.
   Future<void> configureShield(ShieldConfiguration configuration) {
-    return _platform.configureShield(configuration.toMap());
+    return _platform
+        .configureShield(configuration.toMap())
+        .throwTypedPauzaError();
   }
 
   // ============================================================
@@ -38,14 +41,14 @@ class AppRestrictionManager {
   /// - Android: package names.
   /// - iOS: base64 `ApplicationToken` strings (from FamilyActivityPicker).
   Future<List<AppIdentifier>> restrictApps(List<AppIdentifier> identifiers) {
-    return _platform.setRestrictedApps(identifiers);
+    return _platform.setRestrictedApps(identifiers).throwTypedPauzaError();
   }
 
   /// Restricts a single app.
   ///
   /// Returns `true` if the restricted set changed, `false` if it was a no-op.
   Future<bool> restrictApp(AppIdentifier identifier) {
-    return _platform.addRestrictedApp(identifier);
+    return _platform.addRestrictedApp(identifier).throwTypedPauzaError();
   }
 
   /// Removes restriction from a specific app.
@@ -54,46 +57,46 @@ class AppRestrictionManager {
   ///
   /// Returns `true` if the restricted set changed, `false` if it was a no-op.
   Future<bool> unrestrictApp(AppIdentifier identifier) {
-    return _platform.removeRestriction(identifier);
+    return _platform.removeRestriction(identifier).throwTypedPauzaError();
   }
 
   /// Removes all app restrictions.
   Future<void> clearAllRestrictions() {
-    return _platform.removeAllRestrictions();
+    return _platform.removeAllRestrictions().throwTypedPauzaError();
   }
 
   /// Returns the list of currently restricted app identifiers.
   Future<List<AppIdentifier>> getRestrictedApps() {
-    return _platform.getRestrictedApps();
+    return _platform.getRestrictedApps().throwTypedPauzaError();
   }
 
   /// Checks if a specific app is currently restricted.
   Future<bool> isAppRestricted(AppIdentifier identifier) {
-    return _platform.isRestricted(identifier);
+    return _platform.isRestricted(identifier).throwTypedPauzaError();
   }
 
   /// Returns whether the restriction session is active right now.
   Future<bool> isRestrictionSessionActiveNow() {
-    return _platform.isRestrictionSessionActiveNow();
+    return _platform.isRestrictionSessionActiveNow().throwTypedPauzaError();
   }
 
   /// Returns whether a restriction session is configured.
   Future<bool> isRestrictionSessionConfigured() {
-    return _platform.isRestrictionSessionConfigured();
+    return _platform.isRestrictionSessionConfigured().throwTypedPauzaError();
   }
 
   /// Pauses restriction enforcement for the given [duration].
   Future<void> pauseEnforcement(Duration duration) {
-    return _platform.pauseEnforcement(duration);
+    return _platform.pauseEnforcement(duration).throwTypedPauzaError();
   }
 
   /// Resumes restriction enforcement immediately.
   Future<void> resumeEnforcement() {
-    return _platform.resumeEnforcement();
+    return _platform.resumeEnforcement().throwTypedPauzaError();
   }
 
   /// Returns the current restriction session snapshot.
   Future<RestrictionSession> getRestrictionSession() {
-    return _platform.getRestrictionSession();
+    return _platform.getRestrictionSession().throwTypedPauzaError();
   }
 }

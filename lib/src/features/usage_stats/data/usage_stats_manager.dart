@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:pauza_screen_time/src/core/cancel_token.dart';
+import 'package:pauza_screen_time/src/core/pauza_error.dart';
 import 'package:pauza_screen_time/src/features/usage_stats/method_channel/usage_stats_method_channel.dart';
 import 'package:pauza_screen_time/src/features/usage_stats/model/app_usage_stats.dart';
 import 'package:pauza_screen_time/src/features/usage_stats/usage_stats_platform.dart';
@@ -33,19 +34,22 @@ class UsageStatsManager {
     Duration timeout = const Duration(seconds: 30),
   }) async {
     if (!Platform.isAndroid) {
-      throw UnsupportedError(
-        'getUsageStats() is only supported on Android. '
-        'On iOS, use DeviceActivityReport platform view for usage statistics.',
+      throw const PauzaUnsupportedError(
+        message:
+            'getUsageStats() is only supported on Android. On iOS, use DeviceActivityReport platform view for usage statistics.',
+        rawCode: 'UNSUPPORTED',
       );
     }
 
-    final result = await _platform.queryUsageStats(
-      startTimeMs: startDate.millisecondsSinceEpoch,
-      endTimeMs: endDate.millisecondsSinceEpoch,
-      includeIcons: includeIcons,
-      cancelToken: cancelToken,
-      timeout: timeout,
-    );
+    final result = await _platform
+        .queryUsageStats(
+          startTimeMs: startDate.millisecondsSinceEpoch,
+          endTimeMs: endDate.millisecondsSinceEpoch,
+          includeIcons: includeIcons,
+          cancelToken: cancelToken,
+          timeout: timeout,
+        )
+        .throwTypedPauzaError();
 
     return result
         .map((item) => UsageStats.fromMap(Map<String, dynamic>.from(item)))
@@ -66,20 +70,23 @@ class UsageStatsManager {
     Duration timeout = const Duration(seconds: 30),
   }) async {
     if (!Platform.isAndroid) {
-      throw UnsupportedError(
-        'getAppUsageStats() is only supported on Android. '
-        'On iOS, use DeviceActivityReport platform view for usage statistics.',
+      throw const PauzaUnsupportedError(
+        message:
+            'getAppUsageStats() is only supported on Android. On iOS, use DeviceActivityReport platform view for usage statistics.',
+        rawCode: 'UNSUPPORTED',
       );
     }
 
-    final result = await _platform.queryAppUsageStats(
-      packageId: packageId,
-      startTimeMs: startDate.millisecondsSinceEpoch,
-      endTimeMs: endDate.millisecondsSinceEpoch,
-      includeIcons: includeIcons,
-      cancelToken: cancelToken,
-      timeout: timeout,
-    );
+    final result = await _platform
+        .queryAppUsageStats(
+          packageId: packageId,
+          startTimeMs: startDate.millisecondsSinceEpoch,
+          endTimeMs: endDate.millisecondsSinceEpoch,
+          includeIcons: includeIcons,
+          cancelToken: cancelToken,
+          timeout: timeout,
+        )
+        .throwTypedPauzaError();
 
     if (result == null) return null;
     return UsageStats.fromMap(Map<String, dynamic>.from(result));

@@ -2,7 +2,6 @@ package com.example.pauza_screen_time.usage_stats.method_channel
 
 import com.example.pauza_screen_time.core.MethodNames
 import com.example.pauza_screen_time.core.PluginErrorHelper
-import com.example.pauza_screen_time.core.PluginErrors
 import com.example.pauza_screen_time.usage_stats.UsageStatsHandler
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -17,6 +16,10 @@ import kotlinx.coroutines.withContext
 class UsageStatsMethodHandler(
     private val usageStatsHandler: UsageStatsHandler
 ) : MethodCallHandler {
+    companion object {
+        private const val FEATURE = "usage_stats"
+    }
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -27,7 +30,13 @@ class UsageStatsMethodHandler(
                 else -> result.notImplemented()
             }
         } catch (e: Exception) {
-            PluginErrorHelper.unexpectedError(result, e)
+            PluginErrorHelper.internalFailure(
+                result = result,
+                feature = FEATURE,
+                action = call.method,
+                message = "Unexpected usage stats error: ${e.message}",
+                error = e,
+            )
         }
     }
 
@@ -41,7 +50,12 @@ class UsageStatsMethodHandler(
         val includeIcons = call.argument<Boolean>("includeIcons") ?: true
 
         if (startTimeMs == null || endTimeMs == null) {
-            PluginErrorHelper.invalidArgument(result, "Start time and end time are required")
+            PluginErrorHelper.invalidArgument(
+                result = result,
+                feature = FEATURE,
+                action = MethodNames.QUERY_USAGE_STATS,
+                message = "Start time and end time are required",
+            )
             return
         }
 
@@ -53,11 +67,12 @@ class UsageStatsMethodHandler(
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    PluginErrorHelper.error(
-                        result,
-                        PluginErrors.CODE_QUERY_USAGE_STATS_ERROR,
-                        "Failed to query usage stats: ${e.message}",
-                        e
+                    PluginErrorHelper.internalFailure(
+                        result = result,
+                        feature = FEATURE,
+                        action = MethodNames.QUERY_USAGE_STATS,
+                        message = "Failed to query usage stats: ${e.message}",
+                        error = e,
                     )
                 }
             }
@@ -71,7 +86,12 @@ class UsageStatsMethodHandler(
         val includeIcons = call.argument<Boolean>("includeIcons") ?: true
 
         if (packageId == null || startTimeMs == null || endTimeMs == null) {
-            PluginErrorHelper.invalidArgument(result, "Package ID, start time, and end time are required")
+            PluginErrorHelper.invalidArgument(
+                result = result,
+                feature = FEATURE,
+                action = MethodNames.QUERY_APP_USAGE_STATS,
+                message = "Package ID, start time, and end time are required",
+            )
             return
         }
 
@@ -83,11 +103,12 @@ class UsageStatsMethodHandler(
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    PluginErrorHelper.error(
-                        result,
-                        PluginErrors.CODE_QUERY_APP_USAGE_STATS_ERROR,
-                        "Failed to query app usage stats: ${e.message}",
-                        e
+                    PluginErrorHelper.internalFailure(
+                        result = result,
+                        feature = FEATURE,
+                        action = MethodNames.QUERY_APP_USAGE_STATS,
+                        message = "Failed to query app usage stats: ${e.message}",
+                        error = e,
                     )
                 }
             }

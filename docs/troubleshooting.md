@@ -15,6 +15,17 @@ This page lists common setup issues and how to fix them.
 **Verify**:
 - Restrict a well-known app (e.g. a browser) and open it — the overlay should appear within ~500ms.
 
+### `restrictApps(...)` fails with `MISSING_PERMISSION` on Android
+
+**What it means**:
+
+Restriction prerequisites are not satisfied. For Android restrictions, this means Accessibility is disabled.
+
+**Fix**:
+- Open **Settings → Accessibility**
+- Enable your app’s accessibility service
+- Retry `restrictApps(...)` / `restrictApp(...)`
+
 ### Blocking triggers, but shield overlay is not visible
 
 **Likely cause**: Accessibility service is enabled, but the plugin’s overlay failed to render due to OEM restrictions or the service not being fully active yet.
@@ -58,6 +69,26 @@ This page lists common setup issues and how to fix them.
 - **Settings → Screen Time → Turn On Screen Time**
 - Re-run and request authorization again
 
+### `restrictApps(...)` fails with `MISSING_PERMISSION` on iOS
+
+**What it means**:
+
+Screen Time authorization has not been granted yet (`notDetermined`).
+
+**Fix**:
+- Call `requestIOSPermission(IOSPermission.familyControls)` first
+- Retry restriction calls after approval
+
+### `restrictApps(...)` fails with `PERMISSION_DENIED` on iOS
+
+**What it means**:
+
+Screen Time authorization was denied.
+
+**Fix**:
+- Ask user to enable Screen Time authorization in system settings
+- Retry after authorization is approved
+
 ### `UsageReportView` shows nothing / fails to render
 
 **Likely cause**: missing **Device Activity Report extension** target.
@@ -66,11 +97,11 @@ This page lists common setup issues and how to fix them.
 - Follow [iOS setup](ios-setup.md) step “Device Activity Report extension”
 - Ensure your extension supports the same `reportContext` you pass from Dart (for example `daily`)
 
-### iOS error `APP_GROUP_ERROR` after calling `configureShield()`
+### iOS `INTERNAL_FAILURE` after calling `configureShield()`
 
 **What it means**:
 
-The plugin tried to store shield configuration into the resolved App Group, but `UserDefaults(suiteName: groupId)` returned `nil`.
+The plugin tried to store shield configuration into the resolved App Group, but App Group storage failed.
 
 **Fix**:
 - Add **App Groups** capability to:
@@ -79,11 +110,11 @@ The plugin tried to store shield configuration into the resolved App Group, but 
 - Ensure both use the same app group identifier
 - Add `Info.plist` key `AppGroupIdentifier` or pass `ShieldConfiguration(appGroupId: ...)`
 
-### iOS error `INVALID_TOKEN`
+### iOS `INVALID_ARGUMENT` when restricting tokens
 
 **What it means**:
 
-The token you passed to restrictions could not be decoded as an iOS `ApplicationToken`.
+One or more tokens you passed to restrictions could not be decoded as iOS `ApplicationToken`.
 
 **Fix**:
 - Only use tokens returned from `InstalledAppsManager.selectIOSApps()`

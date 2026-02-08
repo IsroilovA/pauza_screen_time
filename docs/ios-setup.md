@@ -50,8 +50,8 @@ In your app `Info.plist`, add:
 
 ### How to verify
 
-- When you call `configureShield(...)` with `appGroupId`, you should not see iOS error `APP_GROUP_ERROR`.
-- If you do see `APP_GROUP_ERROR`, your App Group is missing or not enabled for the running target.
+- When you call `configureShield(...)` with `appGroupId`, you should not see iOS `INTERNAL_FAILURE`.
+- If you do see `INTERNAL_FAILURE` with App Group diagnostics, your App Group is missing or not enabled for the running target.
 
 ## 3) Request Screen Time authorization
 

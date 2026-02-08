@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'pauza_screen_time'
-  s.version          = '0.0.1'
+  s.version          = '0.1.0'
   s.summary          = 'Flutter plugin for app usage monitoring, restriction, and parental controls.'
   s.description      = <<-DESC
 A Flutter plugin that provides app usage monitoring, restriction, and parental controls
