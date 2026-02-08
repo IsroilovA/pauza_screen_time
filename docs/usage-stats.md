@@ -38,6 +38,18 @@ final app = await usage.getAppUsageStats(
 );
 ```
 
+### Missing permission behavior
+
+If Usage Access is not granted, Android usage stats calls fail with taxonomy code
+`MISSING_PERMISSION`, which maps to `PauzaMissingPermissionError` in Dart.
+
+Use the permissions API to request and re-check access before retrying:
+
+```dart
+final permissions = PermissionManager();
+await permissions.requestAndroidPermission(AndroidPermission.usageStats);
+```
+
 ### Android schema semantics
 
 Each `UsageStats` item includes:

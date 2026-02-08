@@ -4,9 +4,9 @@ import android.app.usage.UsageEvents
 import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build
+import com.example.pauza_screen_time.permissions.PermissionHandler
 import com.example.pauza_screen_time.utils.AppInfoUtils
 
 /**
@@ -24,6 +24,7 @@ class UsageStatsHandler(private val context: Context) {
     private val usageStatsManager: UsageStatsManager =
         context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
     private val packageManager: PackageManager = context.packageManager
+    private val permissionHandler = PermissionHandler(context)
 
     /**
      * Queries usage statistics for a given time range.
@@ -38,45 +39,41 @@ class UsageStatsHandler(private val context: Context) {
         endTimeMs: Long,
         includeIcons: Boolean = true
     ): List<Map<String, Any?>> {
+        ensureUsageStatsPermission()
         val usageStatsList = mutableListOf<Map<String, Any?>>()
 
-        try {
-            // Query usage stats for the specified time range
-            val stats = usageStatsManager.queryUsageStats(
-                UsageStatsManager.INTERVAL_BEST,
-                startTimeMs,
-                endTimeMs
-            )
+        // Query usage stats for the specified time range
+        val stats = usageStatsManager.queryUsageStats(
+            UsageStatsManager.INTERVAL_BEST,
+            startTimeMs,
+            endTimeMs
+        )
 
-            if (stats == null || stats.isEmpty()) {
-                android.util.Log.w("UsageStatsHandler", "No usage stats found for the given time range")
-                return emptyList()
-            }
-
-            // Single pass over events to avoid O(N_apps × N_events)
-            val launchCountsByPackage = calculateLaunchCounts(startTimeMs, endTimeMs)
-
-            // Process each app's usage stats
-            for (usageStats in stats) {
-                // Skip apps with zero usage time
-                if (usageStats.totalTimeInForeground <= 0) {
-                    continue
-                }
-
-                val launchCount = launchCountsByPackage[usageStats.packageName] ?: 0
-
-                // Extract enriched usage stats data
-                val statsData = extractUsageStatsData(usageStats, launchCount, includeIcons)
-                if (statsData != null) {
-                    usageStatsList.add(statsData)
-                }
-            }
-
-            android.util.Log.d("UsageStatsHandler", "Retrieved ${usageStatsList.size} usage stats")
-        } catch (e: Exception) {
-            android.util.Log.e("UsageStatsHandler", "Error querying usage stats", e)
+        if (stats == null || stats.isEmpty()) {
+            android.util.Log.w("UsageStatsHandler", "No usage stats found for the given time range")
+            return emptyList()
         }
 
+        // Single pass over events to avoid O(N_apps × N_events)
+        val launchCountsByPackage = calculateLaunchCounts(startTimeMs, endTimeMs)
+
+        // Process each app's usage stats
+        for (usageStats in stats) {
+            // Skip apps with zero usage time
+            if (usageStats.totalTimeInForeground <= 0) {
+                continue
+            }
+
+            val launchCount = launchCountsByPackage[usageStats.packageName] ?: 0
+
+            // Extract enriched usage stats data
+            val statsData = extractUsageStatsData(usageStats, launchCount, includeIcons)
+            if (statsData != null) {
+                usageStatsList.add(statsData)
+            }
+        }
+
+        android.util.Log.d("UsageStatsHandler", "Retrieved ${usageStatsList.size} usage stats")
         return usageStatsList
     }
 
@@ -95,21 +92,27 @@ class UsageStatsHandler(private val context: Context) {
         endTimeMs: Long,
         includeIcons: Boolean = true
     ): Map<String, Any?>? {
-        return try {
-            val stats = usageStatsManager.queryUsageStats(
-                UsageStatsManager.INTERVAL_BEST,
-                startTimeMs,
-                endTimeMs
-            ) ?: return null
+        ensureUsageStatsPermission()
 
-            val usageStats = stats.firstOrNull { it.packageName == packageId } ?: return null
-            if (usageStats.totalTimeInForeground <= 0) return null
+        val stats = usageStatsManager.queryUsageStats(
+            UsageStatsManager.INTERVAL_BEST,
+            startTimeMs,
+            endTimeMs
+        ) ?: return null
 
-            val launchCount = calculateLaunchCountForPackage(packageId, startTimeMs, endTimeMs)
-            extractUsageStatsData(usageStats, launchCount, includeIcons)
-        } catch (e: Exception) {
-            android.util.Log.e("UsageStatsHandler", "Error querying app usage stats for $packageId", e)
-            null
+        val usageStats = stats.firstOrNull { it.packageName == packageId } ?: return null
+        if (usageStats.totalTimeInForeground <= 0) return null
+
+        val launchCount = calculateLaunchCountForPackage(packageId, startTimeMs, endTimeMs)
+        return extractUsageStatsData(usageStats, launchCount, includeIcons)
+    }
+
+    private fun ensureUsageStatsPermission() {
+        val usageStatsStatus = permissionHandler.checkPermission(PermissionHandler.USAGE_STATS_KEY)
+        if (usageStatsStatus != PermissionHandler.STATUS_GRANTED) {
+            throw SecurityException(
+                "Usage Access is not granted for android.usageStats"
+            )
         }
     }
 

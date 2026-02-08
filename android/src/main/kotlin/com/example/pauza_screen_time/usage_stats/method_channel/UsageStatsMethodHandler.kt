@@ -18,6 +18,8 @@ class UsageStatsMethodHandler(
 ) : MethodCallHandler {
     companion object {
         private const val FEATURE = "usage_stats"
+        private const val ANDROID_USAGE_STATS_PERMISSION = "android.usageStats"
+        private const val STATUS_DENIED = "denied"
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -65,6 +67,14 @@ class UsageStatsMethodHandler(
                 withContext(Dispatchers.Main) {
                     result.success(stats)
                 }
+            } catch (e: SecurityException) {
+                withContext(Dispatchers.Main) {
+                    reportMissingUsageStatsPermission(
+                        result = result,
+                        action = MethodNames.QUERY_USAGE_STATS,
+                        message = "Usage Access is not granted. Enable Usage Access for this app in Settings.",
+                    )
+                }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     PluginErrorHelper.internalFailure(
@@ -101,6 +111,14 @@ class UsageStatsMethodHandler(
                 withContext(Dispatchers.Main) {
                     result.success(stats)
                 }
+            } catch (e: SecurityException) {
+                withContext(Dispatchers.Main) {
+                    reportMissingUsageStatsPermission(
+                        result = result,
+                        action = MethodNames.QUERY_APP_USAGE_STATS,
+                        message = "Usage Access is not granted. Enable Usage Access for this app in Settings.",
+                    )
+                }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     PluginErrorHelper.internalFailure(
@@ -113,5 +131,20 @@ class UsageStatsMethodHandler(
                 }
             }
         }
+    }
+
+    private fun reportMissingUsageStatsPermission(
+        result: Result,
+        action: String,
+        message: String,
+    ) {
+        PluginErrorHelper.missingPermission(
+            result = result,
+            feature = FEATURE,
+            action = action,
+            message = message,
+            missing = listOf(ANDROID_USAGE_STATS_PERMISSION),
+            status = mapOf(ANDROID_USAGE_STATS_PERMISSION to STATUS_DENIED),
+        )
     }
 }
