@@ -1,6 +1,7 @@
 import 'package:pauza_screen_time/src/core/app_identifier.dart';
 import 'package:pauza_screen_time/src/features/restrict_apps/app_restriction_platform.dart';
 import 'package:pauza_screen_time/src/features/restrict_apps/method_channel/restrictions_method_channel.dart';
+import 'package:pauza_screen_time/src/features/restrict_apps/model/restriction_session.dart';
 import 'package:pauza_screen_time/src/features/restrict_apps/model/shield_configuration.dart';
 
 /// Manages app blocking and restriction functionality.
@@ -69,5 +70,15 @@ class AppRestrictionManager {
   /// Checks if a specific app is currently restricted.
   Future<bool> isAppRestricted(AppIdentifier identifier) {
     return _platform.isRestricted(identifier);
+  }
+
+  /// Returns whether the restriction session is active right now.
+  Future<bool> isRestrictionSessionActiveNow() {
+    return _platform.isRestrictionSessionActiveNow();
+  }
+
+  /// Returns the current restriction session snapshot.
+  Future<RestrictionSession> getRestrictionSession() {
+    return _platform.getRestrictionSession();
   }
 }

@@ -23,6 +23,8 @@ class RestrictionsMethodHandler(
                 MethodNames.REMOVE_ALL_RESTRICTIONS -> handleRemoveAllRestrictions(result)
                 MethodNames.GET_RESTRICTED_APPS -> handleGetRestrictedApps(result)
                 MethodNames.IS_RESTRICTED -> handleIsRestricted(call, result)
+                MethodNames.IS_RESTRICTION_SESSION_ACTIVE_NOW -> handleIsRestrictionSessionActiveNow(result)
+                MethodNames.GET_RESTRICTION_SESSION -> handleGetRestrictionSession(result)
                 else -> result.notImplemented()
             }
         } catch (e: Exception) {
@@ -225,6 +227,51 @@ class RestrictionsMethodHandler(
                 result,
                 PluginErrors.CODE_IS_RESTRICTED_ERROR,
                 "Failed to check if app is restricted: ${e.message}",
+                e
+            )
+        }
+    }
+
+    private fun handleIsRestrictionSessionActiveNow(result: Result) {
+        val context = contextProvider()
+        if (context == null) {
+            PluginErrorHelper.noContext(result)
+            return
+        }
+
+        try {
+            val restrictedApps = RestrictionManager.getInstance(context).getRestrictedApps()
+            result.success(restrictedApps.isNotEmpty())
+        } catch (e: Exception) {
+            PluginErrorHelper.error(
+                result,
+                PluginErrors.CODE_GET_RESTRICTED_APPS_ERROR,
+                "Failed to get restriction session active state: ${e.message}",
+                e
+            )
+        }
+    }
+
+    private fun handleGetRestrictionSession(result: Result) {
+        val context = contextProvider()
+        if (context == null) {
+            PluginErrorHelper.noContext(result)
+            return
+        }
+
+        try {
+            val restrictedApps = RestrictionManager.getInstance(context).getRestrictedApps()
+            result.success(
+                mapOf(
+                    "isActiveNow" to restrictedApps.isNotEmpty(),
+                    "restrictedApps" to restrictedApps
+                )
+            )
+        } catch (e: Exception) {
+            PluginErrorHelper.error(
+                result,
+                PluginErrors.CODE_GET_RESTRICTED_APPS_ERROR,
+                "Failed to get restriction session: ${e.message}",
                 e
             )
         }

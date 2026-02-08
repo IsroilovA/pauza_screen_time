@@ -18,6 +18,10 @@ final class RestrictionsMethodHandler {
             handleRemoveAllRestrictions(call: call, result: result)
         case MethodNames.getRestrictedApps:
             handleGetRestrictedApps(call: call, result: result)
+        case MethodNames.isRestrictionSessionActiveNow:
+            handleIsRestrictionSessionActiveNow(result: result)
+        case MethodNames.getRestrictionSession:
+            handleGetRestrictionSession(result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -156,5 +160,29 @@ final class RestrictionsMethodHandler {
         }
         let tokens = ShieldManager.shared.getRestrictedApps()
         result(tokens)
+    }
+
+    private func handleIsRestrictionSessionActiveNow(result: @escaping FlutterResult) {
+        guard #available(iOS 16.0, *) else {
+            result(false)
+            return
+        }
+        let restrictedApps = ShieldManager.shared.getRestrictedApps()
+        result(!restrictedApps.isEmpty)
+    }
+
+    private func handleGetRestrictionSession(result: @escaping FlutterResult) {
+        guard #available(iOS 16.0, *) else {
+            result([
+                "isActiveNow": false,
+                "restrictedApps": [String]()
+            ])
+            return
+        }
+        let restrictedApps = ShieldManager.shared.getRestrictedApps()
+        result([
+            "isActiveNow": !restrictedApps.isEmpty,
+            "restrictedApps": restrictedApps
+        ])
     }
 }

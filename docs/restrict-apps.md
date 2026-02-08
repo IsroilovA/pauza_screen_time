@@ -96,6 +96,19 @@ final current = await restrictions.getRestrictedApps();
 final isBlocked = await restrictions.isAppRestricted(current.first);
 ```
 
+## 5) Restriction session snapshot
+
+Restriction session activity is currently observational:
+- session is active when the restricted set is non-empty
+- this does not yet model explicit start/stop or pause
+
+```dart
+final restrictions = AppRestrictionManager();
+
+final isActiveNow = await restrictions.isRestrictionSessionActiveNow();
+final session = await restrictions.getRestrictionSession();
+```
+
 ## Verification checklist
 
 - **Android**:

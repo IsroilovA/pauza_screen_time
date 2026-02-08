@@ -5,6 +5,7 @@ import 'package:pauza_screen_time/src/core/app_identifier.dart';
 import 'package:pauza_screen_time/src/features/restrict_apps/app_restriction_platform.dart';
 import 'package:pauza_screen_time/src/features/restrict_apps/method_channel/channel_name.dart';
 import 'package:pauza_screen_time/src/features/restrict_apps/method_channel/method_names.dart';
+import 'package:pauza_screen_time/src/features/restrict_apps/model/restriction_session.dart';
 
 /// Method-channel implementation for the Restrict Apps feature.
 class RestrictionsMethodChannel extends AppRestrictionPlatform {
@@ -79,5 +80,30 @@ class RestrictionsMethodChannel extends AppRestrictionPlatform {
     );
     if (result == null) return [];
     return result.cast<String>().map(AppIdentifier.new).toList();
+  }
+
+  @override
+  Future<bool> isRestrictionSessionActiveNow() async {
+    final result = await channel.invokeMethod<bool>(
+      RestrictionsMethodNames.isRestrictionSessionActiveNow,
+    );
+    return result ?? false;
+  }
+
+  @override
+  Future<RestrictionSession> getRestrictionSession() async {
+    final result = await channel.invokeMethod<Map<dynamic, dynamic>>(
+      RestrictionsMethodNames.getRestrictionSession,
+    );
+    if (result == null) {
+      return const RestrictionSession(isActiveNow: false, restrictedApps: []);
+    }
+
+    try {
+      final normalized = Map<String, dynamic>.from(result);
+      return RestrictionSession.fromMap(normalized);
+    } catch (_) {
+      return const RestrictionSession(isActiveNow: false, restrictedApps: []);
+    }
   }
 }

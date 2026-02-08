@@ -25,4 +25,6 @@ object MethodNames {
     const val REMOVE_ALL_RESTRICTIONS = "removeAllRestrictions"
     const val GET_RESTRICTED_APPS = "getRestrictedApps"
     const val IS_RESTRICTED = "isRestricted"
+    const val IS_RESTRICTION_SESSION_ACTIVE_NOW = "isRestrictionSessionActiveNow"
+    const val GET_RESTRICTION_SESSION = "getRestrictionSession"
 }

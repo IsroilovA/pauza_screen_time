@@ -1,5 +1,6 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:pauza_screen_time/src/core/app_identifier.dart';
+import 'package:pauza_screen_time/src/features/restrict_apps/model/restriction_session.dart';
 
 /// Platform interface for app restriction functionality.
 abstract class AppRestrictionPlatform extends PlatformInterface {
@@ -51,5 +52,19 @@ abstract class AppRestrictionPlatform extends PlatformInterface {
   /// Returns the list of currently restricted package IDs.
   Future<List<AppIdentifier>> getRestrictedApps() {
     throw UnimplementedError('getRestrictedApps() has not been implemented.');
+  }
+
+  /// Returns whether a restriction session is currently active.
+  Future<bool> isRestrictionSessionActiveNow() {
+    throw UnimplementedError(
+      'isRestrictionSessionActiveNow() has not been implemented.',
+    );
+  }
+
+  /// Returns the current restriction session snapshot.
+  Future<RestrictionSession> getRestrictionSession() {
+    throw UnimplementedError(
+      'getRestrictionSession() has not been implemented.',
+    );
   }
 }

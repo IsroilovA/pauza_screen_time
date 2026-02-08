@@ -11,4 +11,7 @@ class RestrictionsMethodNames {
   static const String removeAllRestrictions = 'removeAllRestrictions';
   static const String getRestrictedApps = 'getRestrictedApps';
   static const String isRestricted = 'isRestricted';
+  static const String isRestrictionSessionActiveNow =
+      'isRestrictionSessionActiveNow';
+  static const String getRestrictionSession = 'getRestrictionSession';
 }
