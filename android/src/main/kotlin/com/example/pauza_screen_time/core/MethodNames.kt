@@ -26,5 +26,8 @@ object MethodNames {
     const val GET_RESTRICTED_APPS = "getRestrictedApps"
     const val IS_RESTRICTED = "isRestricted"
     const val IS_RESTRICTION_SESSION_ACTIVE_NOW = "isRestrictionSessionActiveNow"
+    const val IS_RESTRICTION_SESSION_CONFIGURED = "isRestrictionSessionConfigured"
+    const val PAUSE_ENFORCEMENT = "pauseEnforcement"
+    const val RESUME_ENFORCEMENT = "resumeEnforcement"
     const val GET_RESTRICTION_SESSION = "getRestrictionSession"
 }

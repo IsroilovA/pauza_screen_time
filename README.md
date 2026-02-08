@@ -13,6 +13,8 @@ This package provides a single Dart API with platform-specific implementations:
 | Permissions helpers | ✅ | ✅ (iOS 16+) |
 | Installed apps | ✅ enumerate | ✅ picker tokens only |
 | Restrict / block apps | ✅ (Accessibility + overlay) | ✅ (Screen Time, iOS 16+) |
+| Restriction session snapshot | ✅ | ✅ |
+| Pause enforcement API | ✅ | ✅ (reliable resume requires monitor extension) |
 | Usage stats as data (`UsageStatsManager`) | ✅ | ❌ (throws `UnsupportedError`) |
 | Usage stats as UI (`UsageReportView`) | ❌ | ✅ (iOS 16+, requires report extension) |
 
@@ -20,7 +22,8 @@ This package provides a single Dart API with platform-specific implementations:
 
 - **iOS app enumeration is not available**. You must use the iOS picker and store opaque tokens.
 - **iOS usage stats cannot be read programmatically**. Apple only allows rendering usage via `DeviceActivityReport` UI.
-- **Android blocking requires user-enabled system settings** (Usage Access, Accessibility, Overlay).
+- **Android blocking requires user-enabled system settings** (Usage Access, Accessibility).
+- **iOS pause auto-resume reliability requires a Device Activity Monitor extension** in the host app.
 
 ## Installation
 
@@ -51,6 +54,13 @@ final restrictions = AppRestrictionManager();
 // Then:
 // - Android: restrict by package names, e.g. "com.whatsapp"
 // - iOS: restrict by base64 ApplicationToken strings from selectIOSApps()
+
+// Pause / session APIs:
+await restrictions.pauseEnforcement(const Duration(minutes: 5));
+await restrictions.resumeEnforcement();
+final isActiveNow = await restrictions.isRestrictionSessionActiveNow();
+final isConfigured = await restrictions.isRestrictionSessionConfigured();
+final session = await restrictions.getRestrictionSession();
 ```
 
 ## Documentation

@@ -91,19 +91,52 @@ class RestrictionsMethodChannel extends AppRestrictionPlatform {
   }
 
   @override
+  Future<bool> isRestrictionSessionConfigured() async {
+    final result = await channel.invokeMethod<bool>(
+      RestrictionsMethodNames.isRestrictionSessionConfigured,
+    );
+    return result ?? false;
+  }
+
+  @override
+  Future<void> pauseEnforcement(Duration duration) {
+    return channel.invokeMethod<void>(
+      RestrictionsMethodNames.pauseEnforcement,
+      {'durationMs': duration.inMilliseconds},
+    );
+  }
+
+  @override
+  Future<void> resumeEnforcement() {
+    return channel.invokeMethod<void>(
+      RestrictionsMethodNames.resumeEnforcement,
+    );
+  }
+
+  @override
   Future<RestrictionSession> getRestrictionSession() async {
     final result = await channel.invokeMethod<Map<dynamic, dynamic>>(
       RestrictionsMethodNames.getRestrictionSession,
     );
     if (result == null) {
-      return const RestrictionSession(isActiveNow: false, restrictedApps: []);
+      return const RestrictionSession(
+        isActiveNow: false,
+        isPausedNow: false,
+        pausedUntil: null,
+        restrictedApps: [],
+      );
     }
 
     try {
       final normalized = Map<String, dynamic>.from(result);
       return RestrictionSession.fromMap(normalized);
     } catch (_) {
-      return const RestrictionSession(isActiveNow: false, restrictedApps: []);
+      return const RestrictionSession(
+        isActiveNow: false,
+        isPausedNow: false,
+        pausedUntil: null,
+        restrictedApps: [],
+      );
     }
   }
 }

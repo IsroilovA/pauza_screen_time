@@ -22,5 +22,8 @@ enum MethodNames {
     static let removeAllRestrictions = "removeAllRestrictions"
     static let getRestrictedApps = "getRestrictedApps"
     static let isRestrictionSessionActiveNow = "isRestrictionSessionActiveNow"
+    static let isRestrictionSessionConfigured = "isRestrictionSessionConfigured"
+    static let pauseEnforcement = "pauseEnforcement"
+    static let resumeEnforcement = "resumeEnforcement"
     static let getRestrictionSession = "getRestrictionSession"
 }

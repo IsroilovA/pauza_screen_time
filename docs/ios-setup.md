@@ -71,7 +71,24 @@ final granted = await permissions.requestIOSPermission(IOSPermission.familyContr
 - The system dialog appears.
 - After approval, `checkIOSPermission(IOSPermission.familyControls)` returns `PermissionStatus.granted`.
 
-## 4) Create the Shield Configuration extension (optional but recommended)
+## 4) Enable reliable pause auto-resume (Device Activity Monitor extension)
+
+### Why this is needed
+
+`pauseEnforcement(Duration)` is implemented on iOS by clearing managed shields and storing pause state in the App Group.
+
+For **reliable** auto-resume when the host app is backgrounded/terminated, you also need a **Device Activity Monitor Extension** that can re-apply stored restrictions at pause end.
+
+Without this extension, restrictions still resume when plugin code runs again, but timing is best-effort.
+
+### Xcode steps (high level)
+
+1) In Xcode: **File → New → Target**
+2) Choose **Device Activity Monitor Extension**
+3) Enable **App Groups** capability for the extension target (same group ID as Runner)
+4) In the extension implementation, read the stored desired token list + pause state from App Group defaults and re-apply restrictions when pause expires
+
+## 5) Create the Shield Configuration extension (optional but recommended)
 
 ### Why this is needed
 
@@ -108,7 +125,7 @@ final class ShieldConfigurationExtension: ShieldConfigurationDataSource {
 }
 ```
 
-## 5) Create the Device Activity Report extension (required for `UsageReportView`)
+## 6) Create the Device Activity Report extension (required for `UsageReportView`)
 
 ### Why this is needed
 
@@ -148,4 +165,3 @@ If the extension is missing, the view will not render correctly.
 - [Restrict / block apps](restrict-apps.md)
 - [Usage stats](usage-stats.md)
 - [Troubleshooting](troubleshooting.md)
-

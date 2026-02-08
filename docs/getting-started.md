@@ -78,6 +78,16 @@ final stats = await usage.getUsageStats(
 );
 ```
 
+4) Pause and inspect restriction session state:
+
+```dart
+await restrictions.pauseEnforcement(const Duration(minutes: 5));
+final isActiveNow = await restrictions.isRestrictionSessionActiveNow();
+final isConfigured = await restrictions.isRestrictionSessionConfigured();
+final session = await restrictions.getRestrictionSession();
+await restrictions.resumeEnforcement();
+```
+
 ### iOS flow (recommended)
 
 1) Request Screen Time authorization (system dialog):
@@ -124,6 +134,15 @@ IOSUsageReportView(
 ```
 
 This requires the **Device Activity Report extension** in the host iOS app. See [iOS setup](ios-setup.md).
+
+4) Pause restrictions temporarily:
+
+```dart
+await restrictions.pauseEnforcement(const Duration(minutes: 5));
+await restrictions.resumeEnforcement();
+```
+
+For reliable timed auto-resume while app is backgrounded/terminated, add a **Device Activity Monitor extension** as described in [iOS setup](ios-setup.md).
 
 ## Next
 

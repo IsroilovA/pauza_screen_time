@@ -61,6 +61,23 @@ abstract class AppRestrictionPlatform extends PlatformInterface {
     );
   }
 
+  /// Returns whether a restriction session is configured.
+  Future<bool> isRestrictionSessionConfigured() {
+    throw UnimplementedError(
+      'isRestrictionSessionConfigured() has not been implemented.',
+    );
+  }
+
+  /// Pauses restriction enforcement for [duration].
+  Future<void> pauseEnforcement(Duration duration) {
+    throw UnimplementedError('pauseEnforcement() has not been implemented.');
+  }
+
+  /// Resumes restriction enforcement immediately.
+  Future<void> resumeEnforcement() {
+    throw UnimplementedError('resumeEnforcement() has not been implemented.');
+  }
+
   /// Returns the current restriction session snapshot.
   Future<RestrictionSession> getRestrictionSession() {
     throw UnimplementedError(

@@ -77,6 +77,21 @@ class AppRestrictionManager {
     return _platform.isRestrictionSessionActiveNow();
   }
 
+  /// Returns whether a restriction session is configured.
+  Future<bool> isRestrictionSessionConfigured() {
+    return _platform.isRestrictionSessionConfigured();
+  }
+
+  /// Pauses restriction enforcement for the given [duration].
+  Future<void> pauseEnforcement(Duration duration) {
+    return _platform.pauseEnforcement(duration);
+  }
+
+  /// Resumes restriction enforcement immediately.
+  Future<void> resumeEnforcement() {
+    return _platform.resumeEnforcement();
+  }
+
   /// Returns the current restriction session snapshot.
   Future<RestrictionSession> getRestrictionSession() {
     return _platform.getRestrictionSession();

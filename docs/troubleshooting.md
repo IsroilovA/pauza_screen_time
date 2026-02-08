@@ -32,6 +32,19 @@ This page lists common setup issues and how to fix them.
 - Open **Settings → Usage access**
 - Allow your app
 
+### Pause expires but app is still usable
+
+**Likely cause**: pause is still active or session is not configured.
+
+**Fix**:
+- Check `isRestrictionSessionConfigured()` and `getRestrictionSession()`
+- Ensure restricted apps are still configured after pause
+- Confirm Accessibility service is still enabled
+
+**Verify**:
+- `getRestrictionSession().isPausedNow` becomes `false` after pause end
+- Opening a restricted app shows the shield again
+
 ## iOS
 
 ### `requestIOSPermission(...)` returns false
@@ -76,3 +89,21 @@ The token you passed to restrictions could not be decoded as an iOS `Application
 - Only use tokens returned from `InstalledAppsManager.selectIOSApps()`
 - Don’t trim/alter the base64 string when storing it
 
+### iOS pause did not auto-resume while app was backgrounded
+
+**Likely cause**: missing **Device Activity Monitor extension** setup.
+
+**Fix**:
+- Follow [iOS setup](ios-setup.md) step “Enable reliable pause auto-resume (Device Activity Monitor extension)”
+- Ensure Runner and monitor extension share the same App Group ID
+- Ensure the extension re-applies stored desired restrictions when pause expires
+
+### iOS/Android pause call fails with `INVALID_ARGUMENT`
+
+**Likely causes**:
+- duration is missing/zero/negative
+- enforcement is already paused
+
+**Fix**:
+- Pass a positive duration (for example `Duration(minutes: 5)`)
+- Check `getRestrictionSession().isPausedNow` before re-pausing

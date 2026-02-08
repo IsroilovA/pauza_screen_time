@@ -8,13 +8,16 @@ This guide covers the app restriction API (`AppRestrictionManager`) and how to c
 
 - You provide **package names** (example: `com.whatsapp`).
 - The plugin uses an AccessibilityService to detect when the restricted app is opened.
-- The plugin shows an overlay “shield” on top of the app (requires overlay permission).
+- The plugin shows an overlay “shield” on top of the app.
+- During `pauseEnforcement(...)`, blocked apps are temporarily allowed until pause expiry.
 
 ### iOS
 
 - You provide **base64 `ApplicationToken` strings** (opaque).
 - Tokens come from the iOS picker: `InstalledAppsManager.selectIOSApps()`.
 - iOS enforces restrictions via `ManagedSettingsStore.shield.applications`.
+- During `pauseEnforcement(...)`, the plugin clears managed shields and restores them after pause state ends.
+- Reliable timed auto-resume while app is not running requires a host **Device Activity Monitor Extension**.
 
 ## 1) Configure the shield UI
 
@@ -98,28 +101,48 @@ final isBlocked = await restrictions.isAppRestricted(current.first);
 
 ## 5) Restriction session snapshot
 
-Restriction session activity is currently observational:
-- session is active when the restricted set is non-empty
-- this does not yet model explicit start/stop or pause
-
 ```dart
 final restrictions = AppRestrictionManager();
 
 final isActiveNow = await restrictions.isRestrictionSessionActiveNow();
+final isConfigured = await restrictions.isRestrictionSessionConfigured();
 final session = await restrictions.getRestrictionSession();
 ```
+
+`RestrictionSession` now includes:
+- `isActiveNow`: restrictions are currently enforcing (configured and not paused)
+- `isPausedNow`: pause is currently active
+- `pausedUntil`: pause expiration timestamp, if paused
+- `restrictedApps`: currently configured restricted identifiers
+
+## 6) Pause and resume enforcement
+
+```dart
+final restrictions = AppRestrictionManager();
+
+await restrictions.pauseEnforcement(const Duration(minutes: 5));
+await restrictions.resumeEnforcement();
+```
+
+Behavior:
+- Calling pause while already paused returns `INVALID_ARGUMENT`.
+- While paused, `isRestrictionSessionActiveNow()` returns `false`.
+- `isRestrictionSessionConfigured()` can still return `true` during pause.
+- Android resumes enforcement automatically after pause expiry.
+- iOS resumes when plugin/native logic runs; for reliable background-timed resume, set up the monitor extension in [iOS setup](ios-setup.md).
 
 ## Verification checklist
 
 - **Android**:
   - Usage Access enabled (recommended for usage stats)
   - Accessibility enabled (required for blocking triggers)
-  - Overlay allowed (required for shield UI)
   - Restrict an app you can easily launch to test
+  - Pause for 1 minute and confirm blocked app becomes usable, then re-blocks after expiry
 - **iOS**:
   - iOS 16+
   - Screen Time authorization approved
   - Tokens come from `selectIOSApps()` (don’t invent them)
+  - For reliable pause auto-resume while app is backgrounded, Device Activity Monitor extension is configured
 
 ## Next
 

@@ -140,6 +140,11 @@ class AppMonitoringService : AccessibilityService() {
             }
         }
 
+        if (RestrictionManager.getInstance(applicationContext).isPausedNow()) {
+            overlayManager?.hideShield()
+            return
+        }
+
         // Check if this app is on the blocklist
         if (isAppRestricted(packageName)) {
             Log.d(TAG, "Restricted app detected: $packageName")

@@ -26,6 +26,7 @@ class RestrictionManager private constructor(context: Context) {
         private const val PREFS_NAME = "app_restriction_prefs"
         private const val KEY_BLOCKED_APPS = "blocked_apps"
         private const val KEY_BLOCKED_APPS_LIST = "blockedApps"
+        private const val KEY_PAUSED_UNTIL_EPOCH_MS = "paused_until_epoch_ms"
 
         @Volatile
         private var instance: RestrictionManager? = null
@@ -142,6 +143,42 @@ class RestrictionManager private constructor(context: Context) {
     @Synchronized
     fun isRestricted(packageId: String): Boolean {
         return blockedApps.contains(packageId)
+    }
+
+    @Synchronized
+    fun getPausedUntilEpochMs(nowMs: Long = System.currentTimeMillis()): Long {
+        val pausedUntil = preferences.getLong(KEY_PAUSED_UNTIL_EPOCH_MS, 0L)
+        if (pausedUntil <= nowMs) {
+            if (pausedUntil != 0L) {
+                preferences.edit()
+                    .putLong(KEY_PAUSED_UNTIL_EPOCH_MS, 0L)
+                    .apply()
+            }
+            return 0L
+        }
+        return pausedUntil
+    }
+
+    @Synchronized
+    fun isPausedNow(nowMs: Long = System.currentTimeMillis()): Boolean {
+        return getPausedUntilEpochMs(nowMs) > nowMs
+    }
+
+    @Synchronized
+    fun pauseFor(durationMs: Long, nowMs: Long = System.currentTimeMillis()) {
+        val pausedUntil = nowMs + durationMs
+        preferences.edit()
+            .putLong(KEY_PAUSED_UNTIL_EPOCH_MS, pausedUntil)
+            .apply()
+        Log.d(TAG, "Restriction enforcement paused until: $pausedUntil")
+    }
+
+    @Synchronized
+    fun clearPause() {
+        preferences.edit()
+            .putLong(KEY_PAUSED_UNTIL_EPOCH_MS, 0L)
+            .apply()
+        Log.d(TAG, "Restriction pause cleared")
     }
 
     /**

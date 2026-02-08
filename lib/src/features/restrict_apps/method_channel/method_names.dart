@@ -13,5 +13,9 @@ class RestrictionsMethodNames {
   static const String isRestricted = 'isRestricted';
   static const String isRestrictionSessionActiveNow =
       'isRestrictionSessionActiveNow';
+  static const String isRestrictionSessionConfigured =
+      'isRestrictionSessionConfigured';
+  static const String pauseEnforcement = 'pauseEnforcement';
+  static const String resumeEnforcement = 'resumeEnforcement';
   static const String getRestrictionSession = 'getRestrictionSession';
 }

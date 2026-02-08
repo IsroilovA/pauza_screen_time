@@ -43,6 +43,8 @@ void main() {
             if (call.method == RestrictionsMethodNames.getRestrictionSession) {
               return {
                 'isActiveNow': true,
+                'isPausedNow': true,
+                'pausedUntilEpochMs': 1,
                 'restrictedApps': ['x'],
               };
             }
@@ -51,6 +53,8 @@ void main() {
 
       final session = await methodChannel.getRestrictionSession();
       expect(session.isActiveNow, isTrue);
+      expect(session.isPausedNow, isTrue);
+      expect(session.pausedUntil, DateTime.fromMillisecondsSinceEpoch(1));
       expect(session.restrictedApps, const [AppIdentifier('x')]);
     });
 
@@ -66,7 +70,55 @@ void main() {
       final session = await methodChannel.getRestrictionSession();
       expect(session, isA<RestrictionSession>());
       expect(session.isActiveNow, isFalse);
+      expect(session.isPausedNow, isFalse);
+      expect(session.pausedUntil, isNull);
       expect(session.restrictedApps, isEmpty);
+    });
+
+    test(
+      'isRestrictionSessionConfigured returns false on null result',
+      () async {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (call) async {
+              if (call.method ==
+                  RestrictionsMethodNames.isRestrictionSessionConfigured) {
+                return null;
+              }
+              return null;
+            });
+
+        final isConfigured = await methodChannel
+            .isRestrictionSessionConfigured();
+        expect(isConfigured, isFalse);
+      },
+    );
+
+    test('pauseEnforcement sends durationMs argument', () async {
+      Object? capturedDurationMs;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            if (call.method == RestrictionsMethodNames.pauseEnforcement) {
+              capturedDurationMs = (call.arguments as Map)['durationMs'];
+            }
+            return null;
+          });
+
+      await methodChannel.pauseEnforcement(const Duration(minutes: 2));
+      expect(capturedDurationMs, 120000);
+    });
+
+    test('resumeEnforcement invokes platform method', () async {
+      var called = false;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            if (call.method == RestrictionsMethodNames.resumeEnforcement) {
+              called = true;
+            }
+            return null;
+          });
+
+      await methodChannel.resumeEnforcement();
+      expect(called, isTrue);
     });
   });
 
@@ -76,12 +128,21 @@ void main() {
       final manager = AppRestrictionManager(platform: fakePlatform);
 
       final isActiveNow = await manager.isRestrictionSessionActiveNow();
+      final isConfigured = await manager.isRestrictionSessionConfigured();
+      await manager.pauseEnforcement(const Duration(seconds: 30));
+      await manager.resumeEnforcement();
       final session = await manager.getRestrictionSession();
 
       expect(fakePlatform.isRestrictionSessionActiveNowCalled, isTrue);
+      expect(fakePlatform.isRestrictionSessionConfiguredCalled, isTrue);
+      expect(fakePlatform.pauseEnforcementCalled, isTrue);
+      expect(fakePlatform.resumeEnforcementCalled, isTrue);
       expect(fakePlatform.getRestrictionSessionCalled, isTrue);
       expect(isActiveNow, isTrue);
+      expect(isConfigured, isTrue);
       expect(session.isActiveNow, isTrue);
+      expect(session.isPausedNow, isFalse);
+      expect(session.pausedUntil, isNull);
       expect(session.restrictedApps, const [
         AppIdentifier.android('com.example.app'),
       ]);
@@ -91,6 +152,9 @@ void main() {
 
 class _FakeAppRestrictionPlatform extends AppRestrictionPlatform {
   bool isRestrictionSessionActiveNowCalled = false;
+  bool isRestrictionSessionConfiguredCalled = false;
+  bool pauseEnforcementCalled = false;
+  bool resumeEnforcementCalled = false;
   bool getRestrictionSessionCalled = false;
 
   @override
@@ -121,6 +185,8 @@ class _FakeAppRestrictionPlatform extends AppRestrictionPlatform {
     getRestrictionSessionCalled = true;
     return const RestrictionSession(
       isActiveNow: true,
+      isPausedNow: false,
+      pausedUntil: null,
       restrictedApps: [AppIdentifier('com.example.app')],
     );
   }
@@ -129,5 +195,21 @@ class _FakeAppRestrictionPlatform extends AppRestrictionPlatform {
   Future<bool> isRestrictionSessionActiveNow() async {
     isRestrictionSessionActiveNowCalled = true;
     return true;
+  }
+
+  @override
+  Future<bool> isRestrictionSessionConfigured() async {
+    isRestrictionSessionConfiguredCalled = true;
+    return true;
+  }
+
+  @override
+  Future<void> pauseEnforcement(Duration duration) async {
+    pauseEnforcementCalled = true;
+  }
+
+  @override
+  Future<void> resumeEnforcement() async {
+    resumeEnforcementCalled = true;
   }
 }

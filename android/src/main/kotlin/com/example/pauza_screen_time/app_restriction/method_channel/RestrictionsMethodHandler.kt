@@ -24,6 +24,9 @@ class RestrictionsMethodHandler(
                 MethodNames.GET_RESTRICTED_APPS -> handleGetRestrictedApps(result)
                 MethodNames.IS_RESTRICTED -> handleIsRestricted(call, result)
                 MethodNames.IS_RESTRICTION_SESSION_ACTIVE_NOW -> handleIsRestrictionSessionActiveNow(result)
+                MethodNames.IS_RESTRICTION_SESSION_CONFIGURED -> handleIsRestrictionSessionConfigured(result)
+                MethodNames.PAUSE_ENFORCEMENT -> handlePauseEnforcement(call, result)
+                MethodNames.RESUME_ENFORCEMENT -> handleResumeEnforcement(result)
                 MethodNames.GET_RESTRICTION_SESSION -> handleGetRestrictionSession(result)
                 else -> result.notImplemented()
             }
@@ -240,13 +243,91 @@ class RestrictionsMethodHandler(
         }
 
         try {
+            val restrictionManager = RestrictionManager.getInstance(context)
+            val restrictedApps = restrictionManager.getRestrictedApps()
+            val isPausedNow = restrictionManager.isPausedNow()
+            result.success(restrictedApps.isNotEmpty() && !isPausedNow)
+        } catch (e: Exception) {
+            PluginErrorHelper.error(
+                result,
+                PluginErrors.CODE_GET_RESTRICTED_APPS_ERROR,
+                "Failed to get restriction session active state: ${e.message}",
+                e
+            )
+        }
+    }
+
+    private fun handleIsRestrictionSessionConfigured(result: Result) {
+        val context = contextProvider()
+        if (context == null) {
+            PluginErrorHelper.noContext(result)
+            return
+        }
+
+        try {
             val restrictedApps = RestrictionManager.getInstance(context).getRestrictedApps()
             result.success(restrictedApps.isNotEmpty())
         } catch (e: Exception) {
             PluginErrorHelper.error(
                 result,
                 PluginErrors.CODE_GET_RESTRICTED_APPS_ERROR,
-                "Failed to get restriction session active state: ${e.message}",
+                "Failed to get restriction session configuration state: ${e.message}",
+                e
+            )
+        }
+    }
+
+    private fun handlePauseEnforcement(call: MethodCall, result: Result) {
+        val context = contextProvider()
+        if (context == null) {
+            PluginErrorHelper.noContext(result)
+            return
+        }
+
+        val durationMs = call.argument<Number>("durationMs")?.toLong()
+        if (durationMs == null || durationMs <= 0L) {
+            PluginErrorHelper.invalidArgument(result, "Missing or invalid 'durationMs' argument")
+            return
+        }
+
+        try {
+            val restrictionManager = RestrictionManager.getInstance(context)
+            if (restrictionManager.isPausedNow()) {
+                PluginErrorHelper.invalidArgument(
+                    result,
+                    "Restriction enforcement is already paused",
+                )
+                return
+            }
+
+            restrictionManager.pauseFor(durationMs)
+            ShieldOverlayManager.getInstanceOrNull()?.hideShield()
+            result.success(null)
+        } catch (e: Exception) {
+            PluginErrorHelper.error(
+                result,
+                PluginErrors.CODE_SET_RESTRICTED_APPS_ERROR,
+                "Failed to pause restriction enforcement: ${e.message}",
+                e
+            )
+        }
+    }
+
+    private fun handleResumeEnforcement(result: Result) {
+        val context = contextProvider()
+        if (context == null) {
+            PluginErrorHelper.noContext(result)
+            return
+        }
+
+        try {
+            RestrictionManager.getInstance(context).clearPause()
+            result.success(null)
+        } catch (e: Exception) {
+            PluginErrorHelper.error(
+                result,
+                PluginErrors.CODE_SET_RESTRICTED_APPS_ERROR,
+                "Failed to resume restriction enforcement: ${e.message}",
                 e
             )
         }
@@ -260,11 +341,16 @@ class RestrictionsMethodHandler(
         }
 
         try {
-            val restrictedApps = RestrictionManager.getInstance(context).getRestrictedApps()
+            val restrictionManager = RestrictionManager.getInstance(context)
+            val restrictedApps = restrictionManager.getRestrictedApps()
+            val pausedUntilEpochMs = restrictionManager.getPausedUntilEpochMs()
+            val isPausedNow = pausedUntilEpochMs > 0L
             result.success(
                 mapOf(
-                    "isActiveNow" to restrictedApps.isNotEmpty(),
-                    "restrictedApps" to restrictedApps
+                    "isActiveNow" to (restrictedApps.isNotEmpty() && !isPausedNow),
+                    "isPausedNow" to isPausedNow,
+                    "pausedUntilEpochMs" to if (isPausedNow) pausedUntilEpochMs else null,
+                    "restrictedApps" to restrictedApps,
                 )
             )
         } catch (e: Exception) {
